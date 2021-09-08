@@ -28,8 +28,9 @@ load(file = "mapping_table.rda")
 # column: Trial.Number = participant specific question number/order
 # column: Reaction.Time = participant response time in ms (divide by 1000)
 # column: Response = participant response
-# Filter participant responses using: Zone.Type == response_text_entry
+# Filter participant responses using: Zone.Type == "response_text_entry"
 
+# condition: randomise blocks == [number] where display == block
 
 # select columns
 participant_columns <- raw_participant_info[,c("Participant.Private.ID",
@@ -40,7 +41,11 @@ main_columns <- raw_main_data[,c("Participant.Private.ID",
                                  "Spreadsheet.Row",
                                  "Trial.Number",
                                  "Reaction.Time",
-                                 "Response")]
+                                 "Response",
+                                 "randomise_blocks",
+                                 "randomise_trials",
+                                 "display")]
+
 
 # finalize transformation
 data_participant <- data.frame()
