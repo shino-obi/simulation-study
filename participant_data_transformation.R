@@ -31,3 +31,6 @@ participant_columns <- raw_participant_info[,c("Participant.Private.ID",
 
 # CREATE PARTICIPANT INFO DF
 
+
+
+# CREATE COVARIATES
