@@ -3,7 +3,7 @@ library(lubridate)
 
 
 # add working directory path
-wd <- "P:/PhD/02 Simulationsstudie/template_data"
+wd <- "P:/PhD/02 Simulationsstudie/simulation-study"
 
 setwd(wd)
 
@@ -29,5 +29,11 @@ participant_columns <- raw_participant_info[,c("Participant.Private.ID",
                                                "Question.Key",
                                                "Response")]
 
+participant_columns_wide <- pivot_wider(data = participant_columns,id_cols = Participant.Private.ID, names_from = Question.Key,values_from = Response)
+
+
 # CREATE PARTICIPANT INFO DF
 
+
+
+# CREATE COVARIATES
