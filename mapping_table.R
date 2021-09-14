@@ -1,7 +1,7 @@
 library(tidyverse)
 
 # add working directory path
-wd <- "P:/PhD/02 Simulationsstudie/template_data"
+wd <- "P:/PhD/02 Simulationsstudie/simulation-study"
 
 setwd(wd)
 
