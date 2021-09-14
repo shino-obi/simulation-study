@@ -3,16 +3,14 @@ library(lubridate)
 
 
 # add working directory path
-wd <- "P:/PhD/02 Simulationsstudie/template_data"
+wd <- "P:/PhD/02 Simulationsstudie/simulation-study"
 
 setwd(wd)
 
 # read data
-raw_participant_info <- read.csv2("data_exp_56915-v22_questionnaire-d1do.csv", sep = ",", na.strings = c("", " ", "null"))
 raw_main_data <- read.csv2("data_exp_56915-v22_task-ouv3.csv", sep = ",", na.strings = c("", " ", "null"))
 
 # parse date
-raw_participant_info$Local.Date <- lubridate::dmy_hms(raw_participant_info$Local.Date, tz = "CET")
 raw_main_data$Local.Date <- lubridate::dmy_hms(raw_main_data$Local.Date, tz = "CET")
 
 
@@ -23,10 +21,6 @@ raw_main_data$Local.Date <- lubridate::dmy_hms(raw_main_data$Local.Date, tz = "C
 
 
 # Description of gorilla data set columns (https://support.gorilla.sc/support/reference/faq/metrics#datacolumns)
-# Participant information
-# column: Participant.Private.ID = individual participant ID (for merging data sets - check live)
-# column: Question.Key = customary set question identifier
-# column: Response = participant response
 
 # Main study data
 # Participant.Private.ID = individual participant ID (for merging data sets - check live)
@@ -43,10 +37,7 @@ raw_main_data$Local.Date <- lubridate::dmy_hms(raw_main_data$Local.Date, tz = "C
 
 
 
-# select columns
-participant_columns <- raw_participant_info[,c("Participant.Private.ID",
-                                               "Question.Key",
-                                               "Response")]
+
 
 main_columns <- raw_main_data[,c("Local.Date",
                                  "Participant.Private.ID",
@@ -58,6 +49,8 @@ main_columns <- raw_main_data[,c("Local.Date",
                                  "randomise_blocks",
                                  "randomise_trials",
                                  "display")]
+
+
 
 
 
