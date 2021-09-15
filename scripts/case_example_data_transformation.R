@@ -2,18 +2,11 @@ library(tidyverse)
 library(lubridate)
 
 
-# add working directory path
-wd <- "P:/PhD/02 Simulationsstudie/simulation-study"
-
-setwd(wd)
-
 # read data
 raw_main_data <- read.csv2("data/data_exp_56915-v22_task-ouv3.csv", sep = ",", na.strings = c("", " ", "null"))
 
 # parse date
 raw_main_data$Local.Date <- lubridate::dmy_hms(raw_main_data$Local.Date, tz = "CET")
-
-
 
 
 # get mapping tables for the participant and main questions
@@ -34,11 +27,6 @@ raw_main_data$Local.Date <- lubridate::dmy_hms(raw_main_data$Local.Date, tz = "C
 
 
 
-
-
-
-
-
 main_columns <- raw_main_data[,c("Local.Date",
                                  "Participant.Private.ID",
                                  "Spreadsheet.Row",
@@ -49,10 +37,6 @@ main_columns <- raw_main_data[,c("Local.Date",
                                  "randomise_blocks",
                                  "randomise_trials",
                                  "display")]
-
-
-
-
 
 
 # CREATE BLOCK MAP TO MATCH BLOCK ORDER WITH BLOCK TYPES 
@@ -165,11 +149,9 @@ merged_case_examples$p_id.y <- NULL
 
 
 # finalize transformation
-data_participant <- data.frame()
+
 data_main <- data.frame()
 
-# merge files into one data set
-data <- data.frame()
 
 # save file
-#save(data, file = "data.rda")
+#save(data_main, file = "data_main.rda")

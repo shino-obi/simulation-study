@@ -1,9 +1,5 @@
 library(tidyverse)
 
-# add working directory path
-wd <- "P:/PhD/02 Simulationsstudie/simulation-study"
-
-setwd(wd)
 
 # read gorilla spreadsheet
 raw_participant_map <- read.csv2("data/data-questionnaire-d1do.csv", sep = ",", na.strings = c("", " ", "null")) # ADJUST
