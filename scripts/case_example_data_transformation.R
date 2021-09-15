@@ -27,16 +27,16 @@ raw_main_data$Local.Date <- lubridate::dmy_hms(raw_main_data$Local.Date, tz = "C
 
 
 
-main_columns <- raw_main_data[,c("Local.Date",
-                                 "Participant.Private.ID",
-                                 "Spreadsheet.Row",
-                                 "Trial.Number",
-                                 "Zone.Type",
-                                 "Reaction.Time",
-                                 "Response",
-                                 "randomise_blocks",
-                                 "randomise_trials",
-                                 "display")]
+main_columns <- raw_main_data %>% select(`Local.Date`,
+                                         `Participant.Private.ID`,
+                                         `Spreadsheet.Row`,
+                                         `Trial.Number`,
+                                         `Zone.Type`,
+                                         `Reaction.Time`,
+                                         `Response`,
+                                         `randomise_blocks`,
+                                         `randomise_trials`,
+                                         `display`)
 
 
 # CREATE BLOCK MAP TO MATCH BLOCK ORDER WITH BLOCK TYPES 

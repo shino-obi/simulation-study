@@ -19,9 +19,9 @@ raw_participant_info$Local.Date <- lubridate::dmy_hms(raw_participant_info$Local
 
 
 # select columns
-participant_columns <- raw_participant_info[,c("Participant.Private.ID",
-                                               "Question.Key",
-                                               "Response")]
+participant_columns <- raw_participant_info %>% select(`Participant.Private.ID`,
+                                                       `Question.Key`,
+                                                       `Response`)
 
 # remove rows with only NA's
 for (i in 1:nrow(participant_columns)) {
@@ -41,7 +41,7 @@ participant_columns_wide$`END QUESTIONNAIRE` <- NULL
 
 
 # CREATE COVARIATES
-participant_covar <- participant_columns_wide %>% select(Participant.Private.ID,
+participant_covar <- participant_columns_wide %>% select(`Participant.Private.ID`,
                                                          `hospital-1-quantised`,
                                                          `profession-1-quantised`,
                                                          `experience-1-quantised`,
