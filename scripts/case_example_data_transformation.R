@@ -3,7 +3,7 @@ library(lubridate)
 
 
 # read data
-raw_main_data <- read.csv2("data/data_exp_56915-v22_task-ouv3.csv", sep = ",", na.strings = c("", " ", "null"))
+raw_main_data <- read.csv2("data/data_exp_56915-v22_task-ouv3.csv", sep = ",", na.strings = c("", " ", "null"), fileEncoding = "UTF-8-BOM")
 
 # parse date
 raw_main_data$Local.Date <- lubridate::dmy_hms(raw_main_data$Local.Date, tz = "CET")
@@ -142,6 +142,12 @@ merged_case_examples$p_id.y <- NULL
 
 
 # JOIN WITH CASE EXAMPLE MAP
+
+# read case example mapping table
+raw_main_map <- read.csv2("data/map_case_example_solutions.csv", sep = ";", na.strings = c("", " ", "null"), fileEncoding = "UTF-8-BOM")
+
+
+
 
 # join by ce_id
 # check by block_type which solution is the correct one

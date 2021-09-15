@@ -3,7 +3,7 @@ library(lubridate)
 
 
 # read data
-raw_participant_info <- read.csv2("data/data_exp_56915-v22_questionnaire-d1do.csv", sep = ",", na.strings = c("", " ", "null"))
+raw_participant_info <- read.csv2("data/data_exp_56915-v22_questionnaire-d1do.csv", sep = ",", na.strings = c("", " ", "null"), fileEncoding = "UTF-8-BOM")
 
 # parse date
 raw_participant_info$Local.Date <- lubridate::dmy_hms(raw_participant_info$Local.Date, tz = "CET")
