@@ -83,10 +83,10 @@ main_responses <-  main_columns %>% dplyr::filter(Zone.Type == "response_text_en
 main_responses$dupli_id <- as.character(main_responses$dupli_id)
 
 # create logical column indicating duplicates
-main_responses$test_dupli <- duplicated(check_dupli$dupli_id)
+main_responses$test_dupli <- duplicated(main_responses$dupli_id)
 
 # quantify duplicates in console output
-summary(main_responses$test_dupli)
+# summary(main_responses$test_dupli)
 
 # select last response given by the participant
 main_responses <- 
