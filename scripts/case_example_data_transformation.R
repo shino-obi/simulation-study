@@ -120,13 +120,12 @@ case_examples$time <- as.numeric(case_examples$time)
 case_examples$time <- round(case_examples$time/1000, digits = 2)
 
 # re-establish blocks via ce_order to match with block_order
-
 case_examples <- case_examples %>%
   mutate(
     block_order = case_when(
       ce_order <= 6 ~ 1,
-    ce_order > 6 & ce_order <= 12 ~ 2,
-    ce_order > 12 ~ 3
+      ce_order > 6 & ce_order <= 12 ~ 2,
+      ce_order > 12 ~ 3
     )
   )
 
@@ -135,29 +134,52 @@ case_examples$block_order <- as.character(case_examples$block_order)
 
 
 # MERGE BLOCK MAP WITH CASE EXAMPLES
-
 merged_case_examples <- left_join(case_examples, block_map, by = "block_order", "p_id")
 merged_case_examples <- merged_case_examples %>% filter(p_id.x == p_id.y)
 merged_case_examples$p_id.y <- NULL
 
+names(merged_case_examples)[names(merged_case_examples) == 'p_id.x'] <- 'p_id'
 
 # JOIN WITH CASE EXAMPLE MAP
-
 # read case example mapping table
 raw_main_map <- read.csv2("data/map_case_example_solutions.csv", sep = ";", na.strings = c("", " ", "null"), fileEncoding = "UTF-8-BOM")
 
-
-
-
 # join by ce_id
-# check by block_type which solution is the correct one
+ce_results <- left_join(merged_case_examples, raw_main_map, by = "ce_id")
+
+#create unique id
+ce_results$id <- seq_along(1:nrow(ce_results))
+
+
+
+# clean participant responses
+## Potential process flow:
+### write code to extract all letters from the response field to check for inappropriate user inputs
+
+### ce_response_cleaning <-  ce_results %>% select(id, response)
+### TO DO ### 
+### (1) separate participants responses by "-" into three columns (No1, "-" , No2)
+###
+
+
+
+# check by block_type which solution is the correct one (1 = SwissMedicInfo, 2 & 3 = PEDeDose)
+
+ce_results <- ce_results %>%
+  mutate(true_result = if_else(condition = block_type == 1,
+                               true = SwissMedicInfo,
+                               false = PEDeDose)
+  )
+
+# calculate difference from true result for descriptive stats
+# problem of dose ranges separated by "-", convert to numeric range?
 
 
 
 # finalize transformation
 
-data_main <- data.frame()
+data_main <- ce_results
 
 
 # save file
-#save(data_main, file = "data_main.rda")
+save(data_main, file = "data_main.rda")
