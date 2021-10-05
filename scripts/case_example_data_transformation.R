@@ -3,7 +3,11 @@ library(lubridate)
 
 
 # read data
-raw_main_data <- read.csv2("data/data_exp_56915-v22_task-ouv3.csv", sep = ",", na.strings = c("", " ", "null"), fileEncoding = "UTF-8-BOM")
+raw_main_data <- read.csv2("data/data_exp_56915-v22_task-ouv3.csv",
+                           sep = ",",
+                           na.strings = c("", " ", "null"),
+                           fileEncoding = "UTF-8-BOM"
+                           )
 
 # parse date
 raw_main_data$Local.Date <- lubridate::dmy_hms(raw_main_data$Local.Date, tz = "CET")
@@ -66,10 +70,12 @@ colnames(block_map) <- c("p_id", "block_order", "block_type")
 
 
 
-# CREATE DF WITH CASE EXAMPLE (CE) RESPONSES
+# CREATE DF WITH CASE EXAMPLE (EX) RESPONSES
 
 # get participant responses only
-main_responses <-  main_columns %>% dplyr::filter(Zone.Type == "response_text_entry")
+main_responses <-  
+  main_columns %>% 
+  dplyr::filter(Zone.Type == "response_text_entry")
 
 # check for duplicate entries and choose last response given by the participant
 # first create id to identify duplicates
@@ -107,25 +113,25 @@ case_examples <-
   case_examples_raw %>%
   group_by(Participant.Private.ID) %>%
     arrange(Spreadsheet.Row, .by_group = TRUE) %>%
-      mutate(ce_id = row_number()) %>% ungroup()
+      mutate(ex_id = row_number()) %>% ungroup()
 
 case_examples$Spreadsheet.Row <- NULL
 
-colnames(case_examples) <- c("p_id", "ce_order", "time", "response", "difficulty", "ce_id")
-case_examples$ce_order <- as.numeric(case_examples$ce_order)
+colnames(case_examples) <- c("p_id", "ex_order", "time", "response", "difficulty", "ex_id")
+case_examples$ex_order <- as.numeric(case_examples$ex_order)
 
-# convert reaction time from miliseconds to seconds and round 
+# convert reaction time from milliseconds to seconds and round 
 case_examples$time <- as.numeric(case_examples$time)
 
 case_examples$time <- round(case_examples$time/1000, digits = 2)
 
-# re-establish blocks via ce_order to match with block_order
+# re-establish blocks via ex_order to match with block_order
 case_examples <- case_examples %>%
   mutate(
     block_order = case_when(
-      ce_order <= 6 ~ 1,
-      ce_order > 6 & ce_order <= 12 ~ 2,
-      ce_order > 12 ~ 3
+      ex_order <= 6 ~ 1,
+      ex_order > 6 & ex_order <= 12 ~ 2,
+      ex_order > 12 ~ 3
     )
   )
 
@@ -134,21 +140,32 @@ case_examples$block_order <- as.character(case_examples$block_order)
 
 
 # MERGE BLOCK MAP WITH CASE EXAMPLES
-merged_case_examples <- left_join(case_examples, block_map, by = "block_order", "p_id")
-merged_case_examples <- merged_case_examples %>% filter(p_id.x == p_id.y)
+merged_case_examples <- left_join(case_examples,
+                                  block_map, 
+                                  by = "block_order", "p_id"
+                                  )
+
+merged_case_examples <- merged_case_examples %>% 
+  dplyr::filter(p_id.x == p_id.y)
+
 merged_case_examples$p_id.y <- NULL
 
 names(merged_case_examples)[names(merged_case_examples) == 'p_id.x'] <- 'p_id'
 
 # JOIN WITH CASE EXAMPLE MAP
 # read case example mapping table
-raw_main_map <- read.csv2("data/map_case_example_solutions.csv", sep = ";", na.strings = c("", " ", "null"), fileEncoding = "UTF-8-BOM")
+raw_main_map <- read.csv2("data/map_case_example_solutions.csv",
+                          sep = ";",
+                          na.strings = c("", " ", "null"),
+                          fileEncoding = "UTF-8-BOM")
 
-# join by ce_id
-ce_results <- left_join(merged_case_examples, raw_main_map, by = "ce_id")
+# join by ex_id
+ex_results <- left_join(merged_case_examples,
+                        raw_main_map,
+                        by = "ex_id")
 
 #create unique id
-ce_results$id <- seq_along(1:nrow(ce_results))
+ex_results$id <- seq_along(1:nrow(ex_results))
 
 
 
@@ -156,7 +173,7 @@ ce_results$id <- seq_along(1:nrow(ce_results))
 ## Potential process flow:
 ### write code to extract all letters from the response field to check for inappropriate user inputs
 
-### ce_response_cleaning <-  ce_results %>% select(id, response)
+### ex_response_cleaning <-  ex_results %>% select(id, response)
 ### TO DO ### 
 ### (1) separate participants responses by "-" into three columns (No1, "-" , No2)
 ###
@@ -165,7 +182,7 @@ ce_results$id <- seq_along(1:nrow(ce_results))
 
 # check by block_type which solution is the correct one (1 = SwissMedicInfo, 2 & 3 = PEDeDose)
 
-ce_results <- ce_results %>%
+ex_results <- ex_results %>%
   mutate(true_result = if_else(condition = block_type == 1,
                                true = SwissMedicInfo,
                                false = PEDeDose)
@@ -178,7 +195,7 @@ ce_results <- ce_results %>%
 
 # finalize transformation
 
-data_main <- ce_results
+data_main <- ex_results
 
 
 # save file
