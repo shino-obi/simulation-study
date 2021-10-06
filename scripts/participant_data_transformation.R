@@ -89,10 +89,13 @@ participant_covar$pededose <- factor(x = participant_covar$pededose,
 # calc (1 = no, 2 = yes) => change to: 0 = no, 1 = yes
 participant_covar$calc <- if_else(condition = participant_covar$calc == "1",true = 0,false = 1)
 
+participant_covar$calc <- factor(x = participant_covar$calc,
+                                 levels = c(0,1),
+                                 labels = c("no", "yes"))
 
 
 # finalize transformation ONLY IF NECESSARY
 data_covar <- participant_covar
 
 # save file
-#save(data_covar, file = "data_covar.rda")
+save(data_covar, file = "data_covar.rda")
