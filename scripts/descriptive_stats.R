@@ -1,7 +1,7 @@
 library(tidyverse)
 
-load("data_covar.rda")
-load("data_main.rda")
+load("data/data_covar.rda")
+load("data/data_main.rda")
 
 
 

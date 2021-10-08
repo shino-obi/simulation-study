@@ -202,4 +202,4 @@ data_main <- ex_results
 
 
 # save file
-save(data_main, file = "data_main.rda")
+save(data_main, file = "data/data_main.rda")

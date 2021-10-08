@@ -98,4 +98,4 @@ participant_covar$calc <- factor(x = participant_covar$calc,
 data_covar <- participant_covar
 
 # save file
-save(data_covar, file = "data_covar.rda")
+save(data_covar, file = "data/data_covar.rda")
