@@ -70,7 +70,7 @@ colnames(block_map) <- c("p_id", "block_order", "block_type")
 
 
 
-# CREATE DF WITH CASE EXAMPLE (EX) RESPONSES
+# CREATE DF WITH EXERCISE (EX) RESPONSES
 
 # get participant responses only
 main_responses <-  
@@ -167,26 +167,29 @@ ex_results <- left_join(merged_case_examples,
 #create unique id
 ex_results$id <- seq_along(1:nrow(ex_results))
 
-
-
 # clean participant responses
 ## Potential process flow:
 ### write code to extract all letters from the response field to check for inappropriate user inputs
 
 ### ex_response_cleaning <-  ex_results %>% select(id, response)
 ### TO DO ### 
-### (1) separate participants responses by "-" into three columns (No1, "-" , No2)
+### (1) separate participants responses by "-" into two columns (No1, "-" , No2)
 ###
 
 
-
 # check by block_type which solution is the correct one (1 = SwissMedicInfo, 2 & 3 = PEDeDose)
-
 ex_results <- ex_results %>%
   mutate(true_result = if_else(condition = block_type == 1,
                                true = SwissMedicInfo,
                                false = PEDeDose)
   )
+
+# create column indicating calculation error = 1
+# CHECK COLUMN TYPE FIRST !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+ex_results$is_error <- NA
+ex_results$is_error <- if_else(condition = ex_results$response == ex_results$true_result,
+          true = paste0(0),
+          false = paste0(1))
 
 # calculate difference from true result for descriptive stats
 # problem of dose ranges separated by "-", convert to numeric range?
