@@ -3,7 +3,16 @@ library(tidyverse)
 load("data/data_covar.rda")
 load("data/data_main.rda")
 
-
+# ONLY TEMPORARY DELETE AGAIN
+#write.table(x = data_main ,file = "data/data_main_test.csv", sep = ";")
+#data_main <- read.csv2("data/test.csv", sep = ";")
+#data_main$is_error <- NA
+data_main$is_error <- if_else(condition = data_main$response == data_main$true_result,
+                               true = paste0(0),
+                               false = paste0(1))
+data_main$p_id <- as.character(data_main$ï..p_id)
+data_main$ï..p_id <- NULL
+########### <------ DELETE UNTIL HERE
 
 # Participant characteristics
 table_covar <- data_covar %>% select(p_id,
@@ -32,46 +41,119 @@ table_factor <- pivot_longer(data = table_covar,
 table_1_factor <- table_factor %>% group_by(variable, values) %>% tally()
 
 ## IQR of age
-table_1_age <- data.frame(
-  mean = mean(data_covar$age),
-  median = median(data_covar$age),
-  q25 = quantile(data_covar$age, probs = 0.25),
-  q75 = quantile(data_covar$age, probs = 0.75))
-
+table_1_age <- data.frame(mean = mean(data_covar$age),
+                          median = median(data_covar$age),
+                          q25 = quantile(data_covar$age, probs = 0.25),
+                          q75 = quantile(data_covar$age, probs = 0.75)
+                          )
 
 # ERRORS
-### Errors made over all exercises and all conditions
-overall.total <- data_main %>%
-  count(is_error)
+### 1) Errors made over all exercises and all conditions
+overall.total <- data_main %>% 
+                  dplyr::filter(is_error == 1) %>%
+                  count()
 
-overall.total$is_error <- NULL
+
+#### add percentage
 overall.total$total_possible <- nrow(data_main)
+
 overall.total$percent <- round(x = overall.total$n / overall.total$total_possible * 100, 
                                digits = 1)
 
-### Errors made over all exercises stratified by condition
+### 2) Errors made over all exercises stratified by condition
 condition.total <- data_main %>%
-  group_by(block_type) %>% 
-  count(is_error) %>%
-  ungroup()
+                    group_by(block_type) %>%
+                    filter(is_error == 1) %>%
+                    count() %>%
+                    ungroup()
 
-condition.total$is_error <- NULL
+#### add percentage
+condition.total <- cbind(condition.total,
+                         data_main %>% 
+                           count(block_type, name = "total_possible") %>%
+                           select(total_possible) %>%
+                           ungroup()
+                         )
 
-### Errors made over all conditions stratified by exercise
-exercise.total <- data_main %>%
-  group_by(ex_id) %>%
-  count(is_error) %>% 
-  ungroup()
+condition.total$percent <- round(x = condition.total$n / condition.total$total_possible * 100, 
+                                 digits = 1)
 
-exercise.total$is_error <- NULL
+### 3) Errors made over all conditions stratified by exercise
+#### create new ex_id column to be sure all questions are represented
+exercise.total <- data.frame(ex_id = seq(from = 1, to = 18, by = 1))
 
-### Errors made stratified by exercise and by condition
-ex.cond.total <- data_main %>%
-  group_by(block_type, ex_id) %>%
-  count(is_error) %>% 
-  ungroup()
+exercise.total <- left_join(exercise.total, 
+                            data_main %>%
+                              group_by(ex_id) %>%
+                              filter(is_error == 1) %>%
+                              count() %>% 
+                              ungroup(),
+                            by = "ex_id"
+                            )
 
-ex.cond.total$is_error <- NULL
+exercise.total <- cbind(exercise.total,
+                         data_main %>% 
+                           count(ex_id, name = "total_possible") %>%
+                           ungroup() %>%
+                           select(total_possible)
+                        )
+
+#### add percentage
+exercise.total$percent <-  round(x = exercise.total$n / exercise.total$total_possible * 100, 
+                                 digits = 1)
+
+
+### 4) Errors made over all conditions stratified by exercise difficulty
+diff.total <- data_main %>%
+                group_by(difficulty) %>%
+                filter(is_error == 1) %>%
+                count() %>%
+                ungroup()
+
+
+diff.total <- cbind(diff.total,
+                        data_main %>%
+                          group_by(difficulty) %>%
+                          count(., name = "total_possible") %>%
+                          ungroup() %>%
+                          select(total_possible)
+                    )
+
+#### add percentage
+diff.total$percent <-  round(x = diff.total$n / diff.total$total_possible * 100, 
+                                 digits = 1)
+
+
+### 5) Errors stratified by conditions and by exercise difficulty
+cond.diff <- data_main %>%
+                group_by(difficulty) %>%
+                filter(is_error == 1) %>%
+                count() %>%
+                ungroup()
+
+
+diff.total <- cbind(diff.total,
+                    data_main %>%
+                      group_by(difficulty) %>%
+                      count(., name = "total_possible") %>%
+                      ungroup() %>%
+                      select(total_possible)
+)
+
+
+### 6) Errors made stratified by exercise and by condition
+ex.cond <- data_main %>%
+            group_by(block_type, ex_id) %>%
+            count(is_error) %>% 
+            ungroup()
+
+ex.cond$is_error <- NULL
+
+#### add percentage
+ex.cond$total_possible <- 
+ex.cond$percent <- round(x = ex.cond$n / ex.cond$total_possible * 100, 
+                         digits = 1)
+
 
 
 
