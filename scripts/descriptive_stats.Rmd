@@ -1,0 +1,321 @@
+---
+title: "Untitled"
+author: "Lukas Higi"
+date: "15 10 2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+
+```{r echo = FALSE}
+# Dataset call
+
+library(tidyverse)
+
+load("data/data_covar.rda")
+load("data/data_main.rda")
+
+########### ONLY TEMPORARY DELETE AGAIN
+#write.table(x = data_main ,file = "data/data_main_test.csv", sep = ";")
+data_main <- read.csv2("data/test.csv", sep = ";")
+data_main$is_error <- NA
+data_main$is_error <- if_else(condition = data_main$response == data_main$true_result,
+                               true = paste0(0),
+                               false = paste0(1))
+data_main$p_id <- as.character(data_main$ï..p_id)
+data_main$ï..p_id <- NULL
+########### <------ DELETE UNTIL HERE
+
+```
+
+```{r}
+# Participant characteristics
+table_covar <- data_covar %>% select(p_id,
+                                     clinic, 
+                                     prof, 
+                                     exp, 
+                                     pededose, 
+                                     calc
+                                     )
+
+# Create a table long format of covariates to calculate frequency of categorical variables
+## switch factor coding to character as pivot longer seems to have a problem with it
+table_covar[] <- lapply(table_covar, as.character)
+
+## long format
+table_factor <- pivot_longer(data = table_covar, 
+                             cols = c(clinic, 
+                                      prof, 
+                                      exp, 
+                                      pededose, 
+                                      calc), 
+                             names_to = "variable", 
+                             values_to = "values")  
+
+## calc frequency of categorical variables
+table_1_factor <- table_factor %>% group_by(variable, values) %>% tally()
+
+### IQR of age
+table_1_age <- data.frame(mean = mean(data_covar$age),
+                          median = median(data_covar$age),
+                          q25 = quantile(data_covar$age, probs = 0.25),
+                          q75 = quantile(data_covar$age, probs = 0.75)
+                          )
+
+```
+
+```{r}
+# ERRORS - Total
+
+### Sum of all errors (total)
+overall.total <- data_main %>% 
+                  dplyr::filter(is_error == 1) %>%
+                  count()
+
+
+#### add percentage
+overall.total$total_possible <- nrow(data_main)
+
+overall.total$percent <- round(x = overall.total$n / overall.total$total_possible * 100, 
+                               digits = 1)
+
+
+### Sum of all errors (confirmatory)
+
+overall.confirmatory <- data_main %>%
+                  dplyr::filter(block_type != 2) %>%
+                  dplyr::filter(is_error == 1) %>%
+                  count()
+
+
+#### add percentage
+overall.confirmatory$total_possible <- nrow(data_main %>% 
+                                              dplyr::filter(block_type != 2)
+                                            )
+
+overall.confirmatory$percent <- round(x = overall.confirmatory$n / overall.confirmatory$total_possible * 100, 
+                               digits = 1)
+
+
+### PEDeDose (full)
+overall.pededose.full <- data_main %>%
+                  dplyr::filter(block_type == 1) %>%
+                  dplyr::filter(is_error == 1) %>%
+                  count()
+
+
+#### add percentage
+overall.pededose.full$total_possible <- nrow(data_main %>%
+                                              dplyr::filter(block_type == 1)
+                                             )
+
+overall.pededose.full$percent <- round(x = overall.pededose.full$n / overall.pededose.full$total_possible * 100, 
+                               digits = 1)
+
+
+### PEDeDose (base)
+overall.pededose.base <- data_main %>%
+                  dplyr::filter(block_type == 2) %>%
+                  dplyr::filter(is_error == 1) %>%
+                  count()
+
+
+#### add percentage
+overall.pededose.base$total_possible <- nrow(data_main %>%
+                                                dplyr::filter(block_type == 2)
+                                              )
+
+overall.pededose.base$percent <- round(x = overall.pededose.base$n / overall.pededose.base$total_possible * 100, 
+                               digits = 1)
+
+
+### Conventional dosing information
+overall.conventional <- data_main %>%
+                  dplyr::filter(block_type == 3) %>%
+                  dplyr::filter(is_error == 1) %>%
+                  count()
+
+
+#### add percentage
+overall.conventional$total_possible <- nrow(data_main %>%
+                                              dplyr::filter(block_type == 3)
+                                            )
+
+overall.conventional$percent <- round(x = overall.conventional$n / overall.conventional$total_possible * 100, 
+                               digits = 1)
+
+
+## Combine all
+overall.errors <- rbind(overall.total, overall.confirmatory, overall.pededose.full, overall.pededose.base, overall.conventional)
+overall.errors$name <- c("total", "confirmatory", "full", "base", "conventional")
+```
+
+```{r}
+# ERRORS - by difficulty level
+
+### Sum of all errors (total)
+diff.total <- data_main %>%
+                group_by(difficulty) %>%
+                filter(is_error == 1) %>%
+                count() %>%
+                ungroup()
+
+
+diff.total <- cbind(diff.total,
+                        data_main %>%
+                          group_by(difficulty) %>%
+                          count(., name = "total_possible") %>%
+                          ungroup() %>%
+                          select(total_possible)
+                    )
+
+#### add percentage
+diff.total$percent <-  round(x = diff.total$n / diff.total$total_possible * 100, 
+                                 digits = 1)
+
+
+
+### Sum of all errors (confirmatory)
+
+### PEDeDose (full)
+
+### PEDeDose (base)
+
+### Conventional dosing information
+
+
+
+```
+
+```{r}
+# ERRORS - by error subtype
+## Transcription errors
+
+### Sum of all errors (total)
+
+### Sum of all errors (confirmatory)
+
+### PEDeDose (full)
+
+### PEDeDose (base)
+
+### Conventional dosing information
+
+
+## 10-fold errors
+### Sum of all errors (total)
+
+### Sum of all errors (confirmatory)
+
+### PEDeDose (full)
+
+### PEDeDose (base)
+
+### Conventional dosing information
+
+
+```
+
+```{r}
+# ERRORS - by difficulty types
+
+## Body surface caclulation
+### Sum of all errors (total)
+
+### Sum of all errors (confirmatory)
+
+### PEDeDose (full)
+
+### PEDeDose (base)
+
+### Conventional dosing information
+
+
+## Maximal dosage
+### Sum of all errors (total)
+
+### Sum of all errors (confirmatory)
+
+### PEDeDose (full)
+
+### PEDeDose (base)
+
+### Conventional dosing information
+
+
+## Preterm infants
+### Sum of all errors (total)
+
+### Sum of all errors (confirmatory)
+
+### PEDeDose (full)
+
+### PEDeDose (base)
+
+### Conventional dosing information
+
+```
+
+```{r}
+# ERRORS - by exercises
+### Sum of all errors (total)
+exercise.total <- data.frame(ex_id = seq(from = 1, to = 18, by = 1))
+
+exercise.total <- left_join(exercise.total, 
+                            data_main %>%
+                              group_by(ex_id) %>%
+                              filter(is_error == 1) %>%
+                              count() %>% 
+                              ungroup(),
+                            by = "ex_id"
+                            )
+
+exercise.total <- cbind(exercise.total,
+                         data_main %>% 
+                           count(ex_id, name = "total_possible") %>%
+                           ungroup() %>%
+                           select(total_possible)
+                        )
+
+#### add percentage
+exercise.total$percent <-  round(x = exercise.total$n / exercise.total$total_possible * 100, 
+                                 digits = 1)
+
+### Sum of all errors (confirmatory)
+
+### PEDeDose (full)
+
+### PEDeDose (base)
+
+### Conventional dosing information
+
+
+#### create new ex_id column to be sure all questions are represented
+
+
+
+```
+
+```{r}
+# Time
+### Sum of all errors (total)
+
+### Sum of all errors (confirmatory)
+
+### PEDeDose (full)
+
+### PEDeDose (base)
+
+### Conventional dosing information
+
+
+```
