@@ -7,6 +7,8 @@ output: html_document
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_knit$set(root.dir = "P:/PhD/02 Simulationsstudie/simulation-study/")
+
 ```
 
 ## R Markdown
@@ -21,19 +23,9 @@ When you click the **Knit** button a document will be generated that includes bo
 
 library(tidyverse)
 
+
 load("data/data_covar.rda")
 load("data/data_main.rda")
-
-########### ONLY TEMPORARY DELETE AGAIN
-#write.table(x = data_main ,file = "data/data_main_test.csv", sep = ";")
-data_main <- read.csv2("data/test.csv", sep = ";")
-data_main$is_error <- NA
-data_main$is_error <- if_else(condition = data_main$response == data_main$true_result,
-                               true = paste0(0),
-                               false = paste0(1))
-data_main$p_id <- as.character(data_main$ï..p_id)
-data_main$ï..p_id <- NULL
-########### <------ DELETE UNTIL HERE
 
 ```
 

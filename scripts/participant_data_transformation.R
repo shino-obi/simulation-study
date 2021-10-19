@@ -2,11 +2,25 @@ library(tidyverse)
 library(lubridate)
 
 
-# read data
-raw_participant_info <- read.csv2("data/data_exp_56915-v22_questionnaire-d1do.csv", sep = ",", na.strings = c("", " ", "null"), fileEncoding = "UTF-8-BOM")
+# create list with filenames
+temp <- list.files(path = "data/raw_data_participants/", pattern = "*.csv")
+
+# initiate df's
+temp_file <- data.frame()
+raw_participant_info <- data.frame()
+
+# load csv files and bind them together
+for (i in temp) {
+  temp_file <- read.csv2(paste("data/raw_data_participants/",i, sep = ""),
+                         sep = ",",
+                         na.strings = c("", " ", "null"),
+                         fileEncoding = "UTF-8-BOM")
+  raw_participant_info <- rbind(raw_participant_info, temp_file)
+} 
 
 # parse date
 raw_participant_info$Local.Date <- lubridate::dmy_hms(raw_participant_info$Local.Date, tz = "CET")
+
 
 # Description of gorilla data set columns (https://support.gorilla.sc/support/reference/faq/metrics#datacolumns)
 
@@ -14,8 +28,6 @@ raw_participant_info$Local.Date <- lubridate::dmy_hms(raw_participant_info$Local
 # column: Participant.Private.ID = individual participant ID (for merging data sets - check live)
 # column: Question.Key = customary set question identifier
 # column: Response = participant response
-
-
 
 
 # select columns
@@ -99,3 +111,4 @@ data_covar <- participant_covar
 
 # save file
 save(data_covar, file = "data/data_covar.rda")
+
