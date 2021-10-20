@@ -9,20 +9,18 @@ temp_file <- data.frame()
 raw_main_data <- data.frame()
 
 # load csv files and bind them together
-for (i in temp) {
+for (i in temp) 
+{
   temp_file <- read.csv2(paste("data/raw_data_main/",i, sep = ""),
-                          sep = ",",
-                          na.strings = c("", " ", "null"),
-                          fileEncoding = "UTF-8-BOM")
+                         sep = ",",
+                         na.strings = c("", " ", "null"),
+                         fileEncoding = "UTF-8-BOM"
+  )
   raw_main_data <- rbind(raw_main_data, temp_file)
 } 
 
 # parse date
 raw_main_data$Local.Date <- lubridate::dmy_hms(raw_main_data$Local.Date, tz = "CET")
-
-
-# get mapping tables for the participant and main questions
-#load(file = "mapping_table.rda")
 
 
 # Description of gorilla data set columns (https://support.gorilla.sc/support/reference/faq/metrics#datacolumns)
@@ -53,24 +51,25 @@ main_columns <- raw_main_data %>% select(Local.Date,
 
 # Note following block types: 1 = ctrl, 2 = base, 3 = full
 
+
 block_map_raw <- main_columns %>%
                   dplyr::filter(display == "block") %>%
-                    group_by(Participant.Private.ID) %>%
-                      arrange(Local.Date, .by_group = TRUE) %>%
-                        ungroup()
+                  group_by(Participant.Private.ID) %>%
+                  arrange(Local.Date, .by_group = TRUE) %>%
+                  ungroup()
 
 # remove duplicates blocks
 block_map <- block_map_raw %>%
               group_by(Participant.Private.ID,
                        Trial.Number) %>%
-                top_n(Local.Date, n = 1) %>%
-                  ungroup()
+              top_n(Local.Date, n = 1) %>%
+              ungroup()
 
 # create final block order df
 block_map <- block_map %>% 
-              select(Participant.Private.ID, 
-                     Trial.Number, 
-                     randomise_blocks) 
+               select(Participant.Private.ID, 
+                      Trial.Number, 
+                      randomise_blocks) 
 
 colnames(block_map) <- c("p_id", "block_order", "block_type")
 
@@ -83,11 +82,12 @@ main_responses <- main_columns %>%
 
 # check for duplicate entries and choose last response given by the participant
 # first create id to identify duplicates
-  for (i in 1:nrow(main_responses)) {
+for (i in 1:nrow(main_responses)) {
     main_responses$dupli_id[[i]] <- paste(main_responses$Participant.Private.ID[[i]],
                                     main_responses$Trial.Number[[i]],
-                                    sep = "-")
-    }
+                                    sep = "-"
+                                    )
+}
 
 main_responses$dupli_id <- as.character(main_responses$dupli_id)
 
@@ -100,8 +100,8 @@ summary(main_responses$test_dupli)
 # select last response given by the participant
 main_responses <- main_responses %>%
                     group_by(dupli_id) %>%
-                      top_n(Local.Date, n = 1) %>%
-                        ungroup()
+                    top_n(Local.Date, n = 1) %>%
+                    ungroup()
 
 # create case example df 
 case_examples_raw <- main_responses %>%
@@ -116,16 +116,16 @@ case_examples_raw <- main_responses %>%
 # create id for case examples using Spreadsheet.Row id
 case_examples <- case_examples_raw %>%
                   group_by(Participant.Private.ID) %>%
-                    arrange(Local.Date, .by_group = TRUE) %>%
-                      mutate(ex_order = row_number()) %>%
-                        ungroup()
+                  arrange(Local.Date, .by_group = TRUE) %>%
+                  mutate(ex_order = row_number()) %>%
+                  ungroup()
 
 
 case_examples <- case_examples %>%
                   group_by(Participant.Private.ID) %>%
-                    arrange(Spreadsheet.Row, .by_group = TRUE) %>%
-                      mutate(ex_id = row_number()) %>%
-                        ungroup()
+                  arrange(Spreadsheet.Row, .by_group = TRUE) %>%
+                  mutate(ex_id = row_number()) %>%
+                  ungroup()
 
 case_examples$Spreadsheet.Row <- NULL
 case_examples$randomise_blocks <- NULL
@@ -145,17 +145,18 @@ case_examples$ex_order <- as.numeric(case_examples$ex_order)
 case_examples$time <- as.numeric(case_examples$time)
 
 case_examples$time <- round(case_examples$time / 1000,
-                            digits = 2)
+                            digits = 2
+                            )
 
 # re-establish blocks via ex_order to match with block_order
 case_examples <- case_examples %>%
-  mutate(
-    block_order = case_when(
-      ex_order <= 6 ~ 1,
-      ex_order > 6 & ex_order <= 12 ~ 2,
-      ex_order > 12 ~ 3
-    )
-  )
+                  mutate(
+                    block_order = case_when(
+                      ex_order <= 6 ~ 1,
+                      ex_order > 6 & ex_order <= 12 ~ 2,
+                      ex_order > 12 ~ 3
+                    )
+                  )
 
 case_examples$block_order <- as.character(case_examples$block_order)
 
@@ -165,51 +166,115 @@ case_examples$block_order <- as.character(case_examples$block_order)
 merged_case_examples <- left_join(case_examples,
                                   block_map, 
                                   by = c("p_id","block_order")
-                                  )
+                        )
 
 # JOIN WITH CASE EXAMPLE MAP
 # read case example mapping table
+####################################### UPDATE MAPPING TABLE WITH TRUE RESULTS #######################################
 raw_main_map <- readxl::read_excel(path = "data/map_case_example_solutions.xlsx")
 
 # join by ex_id
 ex_results <- left_join(merged_case_examples,
                         raw_main_map,
-                        by = "ex_id")
+                        by = "ex_id"
+              )
 
-# clean participant responses
-## Potential process flow:
-### write code to extract all letters from the response field to check for inappropriate user inputs
 
-### ex_response_cleaning <-  ex_results %>% select(ex_id, response)
-### TO DO ### 
-### (1) separate participants responses by "-" into two columns (No1, "-" , No2)
-###
+# clean participant responses (1) and check for inappropriate characters (2)
+string_test <- ex_results[, c("p_id",
+                              "ex_id",
+                              "drug",
+                              "response")]
+
+############################### DELETE PLS ###############################
+string_test <- data.frame(id = seq(1:10), response = c("1.2-2.3-2.4", "12.3-23.3.3", "21-34-33a", "asd-asd.d", "12-33.4", "a-.s-d.-f", "2.2 - 3.3", "3,4", "5%", "3,4 - 4,5"))
+############################### UNTIL HERE ###############################
+
+# 1) clean responses
+# remove whitespaces
+string_test$response <-  str_replace_all(string = string_test$response,
+                                         pattern = "[:blank:]",
+                                         replacement = ""
+)
+
+
+# switch commas to points
+string_test$response <-  str_replace_all(string = string_test$response,
+                                         pattern = ",",
+                                         replacement = "\\."
+)
+
+# 2) checking for inappropriate characters
+# check for hyphen: - either 0 or 1 allowed, if correct = TRUE
+string_test$str_hyphen <-  if_else(
+                              condition = str_count(string = string_test$response,
+                                                    pattern = "-") <= 1,
+                              true = TRUE,
+                              false = FALSE
+                           )
+
+# check for points: either 0, 1, or 2 allowed and 2 are only allowed when there is a hyphen, if correct = TRUE
+string_test$str_points <- str_count(string = string_test$response,
+                                    pattern = "\\."
+                          )
+                                  
+string_test$str_points <- case_when(
+                              string_test$str_points <= 1 ~ TRUE,
+                              string_test$str_points == 2 & str_count(string = string_test$response,
+                                                                       pattern = "-") == 1  ~ TRUE,
+                              TRUE ~ FALSE                            
+                            )
+
+
+# check for letters: none allowed
+string_test$str_letter <- str_detect(string = string_test$response,
+                                     pattern = "[:alpha:]",
+                                     negate = TRUE
+                          )
+
+# check for other characters: none allowed
+string_test$str_punct <- str_replace_all(string = string_test$response, pattern = "[\\.-]", replacement = "")
+
+string_test$str_punct <- str_detect(string = string_test$str_punct,
+                                    pattern = "[:punct:]",
+                                    negate = TRUE
+                         )
+
+# conditions to detect problematic input
+string_test$str_clean <- if_else(condition = 
+                                      string_test$str_hyphen == TRUE &
+                                      string_test$str_points == TRUE &
+                                      string_test$str_letter == TRUE &
+                                      string_test$str_punct == TRUE,
+                                   true = TRUE,
+                                   false = FALSE
+                            )
 
 
 # check by block_type which solution is the correct one (1 = SwissMedicInfo, 2 & 3 = PEDeDose)
 ex_results <- ex_results %>%
-  mutate(true_result = if_else(condition = block_type == 1,
-                               true = SwissMedicInfo,
-                               false = PEDeDose)
-  )
+                mutate(true_result =
+                         if_else(condition =
+                                  block_type == 1,
+                                 true = SwissMedicInfo,
+                                 false = PEDeDose
+                         )
+                )
 
 # create column indicating calculation error = 1
-# CHECK COLUMN TYPE FIRST !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+####################################### CHECK COLUMN TYPE FIRST #######################################
 ex_results$is_error <- NA
-ex_results$is_error <- if_else(condition = ex_results$response == ex_results$true_result,
-          true = paste0(0),
-          false = paste0(1))
-
-# calculate difference from true result for descriptive stats
-# problem of dose ranges separated by "-", convert to numeric range?
-
-
+ex_results$is_error <- if_else(condition = 
+                                 ex_results$response == ex_results$true_result,
+                                true = paste0(0),
+                                false = paste0(1)
+                       )
 
 # finalize transformation
 
 data_main <- ex_results
 
-############################ test <- data_main %>% select(drug, response, true_result, is_error, block_type, difficulty) %>% filter(is_error == 1)
+###### FOR PILOT ###################### test <- data_main %>% select(drug, response, true_result, is_error, block_type, difficulty) %>% filter(is_error == 1)
 
 # save file
 save(data_main, file = "data/data_main.rda")
