@@ -11,18 +11,10 @@ knitr::opts_knit$set(root.dir = "P:/PhD/02 Simulationsstudie/simulation-study/")
 
 ```
 
-## R Markdown
-
-This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
-
-When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
-
-
 ```{r echo = FALSE}
 # Dataset call
 
 library(tidyverse)
-
 
 load("data/data_covar.rda")
 load("data/data_main.rda")
@@ -84,9 +76,9 @@ overall.total$percent <- round(x = overall.total$n / overall.total$total_possibl
 ### Sum of all errors (confirmatory)
 
 overall.confirmatory <- data_main %>%
-                  dplyr::filter(block_type != 2) %>%
-                  dplyr::filter(is_error == 1) %>%
-                  count()
+                          dplyr::filter(block_type != 2) %>%
+                          dplyr::filter(is_error == 1) %>%
+                          count()
 
 
 #### add percentage
@@ -99,60 +91,61 @@ overall.confirmatory$percent <- round(x = overall.confirmatory$n / overall.confi
 
 
 ### PEDeDose (full)
-overall.pededose.full <- data_main %>%
-                  dplyr::filter(block_type == 1) %>%
-                  dplyr::filter(is_error == 1) %>%
-                  count()
-
-
-#### add percentage
-overall.pededose.full$total_possible <- nrow(data_main %>%
-                                              dplyr::filter(block_type == 1)
-                                             )
-
-overall.pededose.full$percent <- round(x = overall.pededose.full$n / overall.pededose.full$total_possible * 100, 
-                               digits = 1)
-
-
-### PEDeDose (base)
-overall.pededose.base <- data_main %>%
-                  dplyr::filter(block_type == 2) %>%
-                  dplyr::filter(is_error == 1) %>%
-                  count()
-
-
-#### add percentage
-overall.pededose.base$total_possible <- nrow(data_main %>%
-                                                dplyr::filter(block_type == 2)
-                                              )
-
-overall.pededose.base$percent <- round(x = overall.pededose.base$n / overall.pededose.base$total_possible * 100, 
-                               digits = 1)
-
-
-### Conventional dosing information
-overall.conventional <- data_main %>%
+overall.full <- data_main %>%
                   dplyr::filter(block_type == 3) %>%
                   dplyr::filter(is_error == 1) %>%
                   count()
 
 
 #### add percentage
-overall.conventional$total_possible <- nrow(data_main %>%
+overall.full$total_possible <- nrow(data_main %>%
                                               dplyr::filter(block_type == 3)
+                                             )
+
+overall.full$percent <- round(x = overall.full$n / overall.full$total_possible * 100, 
+                               digits = 1)
+
+
+### PEDeDose (base)
+overall.base <- data_main %>%
+                  dplyr::filter(block_type == 2) %>%
+                  dplyr::filter(is_error == 1) %>%
+                  count()
+
+
+#### add percentage
+overall.base$total_possible <- nrow(data_main %>%
+                                                dplyr::filter(block_type == 2)
+                                              )
+
+overall.base$percent <- round(x = overall.base$n / overall.base$total_possible * 100, 
+                               digits = 1)
+
+
+### Conventional dosing information
+overall.control <- data_main %>%
+                    dplyr::filter(block_type == 1) %>%
+                    dplyr::filter(is_error == 1) %>%
+                    count()
+
+
+#### add percentage
+overall.control$total_possible <- nrow(data_main %>%
+                                              dplyr::filter(block_type == 1)
                                             )
 
-overall.conventional$percent <- round(x = overall.conventional$n / overall.conventional$total_possible * 100, 
+overall.control$percent <- round(x = overall.control$n / overall.control$total_possible * 100, 
                                digits = 1)
 
 
 ## Combine all
-overall.errors <- rbind(overall.total, overall.confirmatory, overall.pededose.full, overall.pededose.base, overall.conventional)
-overall.errors$name <- c("total", "confirmatory", "full", "base", "conventional")
+overall.errors <- rbind(overall.total, overall.confirmatory, overall.full, overall.base, overall.control)
+overall.errors$name <- c("total", "confirmatory", "full", "base", "control")
 ```
 
 ```{r}
-# ERRORS - by difficulty level
+# ERRORS - by difficulty level 
+####################################################### WRONG #######################################################
 
 ### Sum of all errors (total)
 diff.total <- data_main %>%
@@ -163,29 +156,110 @@ diff.total <- data_main %>%
 
 
 diff.total <- cbind(diff.total,
-                        data_main %>%
-                          group_by(difficulty) %>%
-                          count(., name = "total_possible") %>%
-                          ungroup() %>%
-                          select(total_possible)
-                    )
+                    data_main %>%
+                      group_by(difficulty) %>%
+                      count(., name = "total_possible") %>%
+                      ungroup() %>%
+                      select(total_possible)
+               )
 
 #### add percentage
 diff.total$percent <-  round(x = diff.total$n / diff.total$total_possible * 100, 
                                  digits = 1)
 
 
-
 ### Sum of all errors (confirmatory)
+diff.confirmatory <- data_main %>%
+                      dplyr::filter(block_type != 2) %>%
+                      group_by(difficulty) %>%
+                      filter(is_error == 1) %>%
+                      count() %>%
+                      ungroup()
+
+
+diff.confirmatory <- cbind(diff.confirmatory,
+                           data_main %>%
+                             dplyr::filter(block_type != 2) %>%
+                             group_by(difficulty) %>%
+                             count(., name = "total_possible") %>%
+                             ungroup() %>%
+                             select(total_possible)
+                     )
+
+diff.confirmatory$percent <-  round(x = diff.confirmatory$n / diff.confirmatory$total_possible * 100, 
+                                 digits = 1)
+
 
 ### PEDeDose (full)
+diff.full <- data_main %>%
+                dplyr::filter(block_type == 3) %>%
+                group_by(difficulty) %>%
+                filter(is_error == 1) %>%
+                count() %>%
+                ungroup()
+
+
+diff.full <- cbind(diff.full,
+                   data_main %>%
+                      dplyr::filter(block_type == 3) %>%
+                      group_by(difficulty) %>%
+                      count(., name = "total_possible") %>%
+                      ungroup() %>%
+                      select(total_possible)
+             )
+
+
+diff.full$percent <-  round(x = diff.full$n / diff.full$total_possible * 100, 
+                                 digits = 1)
 
 ### PEDeDose (base)
+diff.base <- data_main %>%
+                dplyr::filter(block_type == 2) %>%
+                group_by(difficulty) %>%
+                filter(is_error == 1) %>%
+                count() %>%
+                ungroup()
+
+
+diff.base <- cbind(diff.base,
+                   data_main %>%
+                    dplyr::filter(block_type == 2) %>%
+                    group_by(difficulty) %>%
+                    count(., name = "total_possible") %>%
+                    ungroup() %>%
+                    select(total_possible)
+             )
+
+
+diff.base$percent <-  round(x = diff.base$n / diff.base$total_possible * 100, 
+                                 digits = 1)
 
 ### Conventional dosing information
+diff.control <- data_main %>%
+                  dplyr::filter(block_type == 1) %>%
+                  group_by(difficulty) %>%
+                  filter(is_error == 1) %>%
+                  count() %>%
+                  ungroup()
 
 
+diff.control <- cbind(diff.control,
+                        data_main %>%
+                          dplyr::filter(block_type == 1) %>%
+                          group_by(difficulty) %>%
+                          count(., name = "total_possible") %>%
+                          ungroup() %>%
+                          select(total_possible)
+                     )
 
+
+diff.control$percent <-  round(x = diff.control$n / diff.control$total_possible * 100, 
+                                 digits = 1)
+
+
+## Combine all
+diff.errors <- rbind(diff.total, diff.confirmatory, diff.full, diff.base, diff.control)
+diff.errors$name <- c("total", "confirmatory", "full", "base", "control")
 ```
 
 ```{r}
@@ -194,11 +268,15 @@ diff.total$percent <-  round(x = diff.total$n / diff.total$total_possible * 100,
 
 ### Sum of all errors (total)
 
+
 ### Sum of all errors (confirmatory)
+
 
 ### PEDeDose (full)
 
+
 ### PEDeDose (base)
+
 
 ### Conventional dosing information
 

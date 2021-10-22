@@ -19,6 +19,10 @@ for (i in temp)
   raw_main_data <- rbind(raw_main_data, temp_file)
 } 
 
+####################################### PILOT #######################################
+# raw_main_data <- read.csv2("data/data_exp_56915-v45_task-ouv3.csv", sep = ",",stringsAsFactors = F)
+
+
 # parse date
 raw_main_data$Local.Date <- lubridate::dmy_hms(raw_main_data$Local.Date, tz = "CET")
 
@@ -186,9 +190,6 @@ string_test <- ex_results[, c("p_id",
                               "drug",
                               "response")]
 
-############################### DELETE PLS ###############################
-string_test <- data.frame(id = seq(1:10), response = c("1.2-2.3-2.4", "12.3-23.3.3", "21-34-33a", "asd-asd.d", "12-33.4", "a-.s-d.-f", "2.2 - 3.3", "3,4", "5%", "3,4 - 4,5"))
-############################### UNTIL HERE ###############################
 
 # 1) clean responses
 # remove whitespaces
@@ -250,6 +251,10 @@ string_test$str_clean <- if_else(condition =
                                    false = FALSE
                             )
 
+# summarize clean inputs
+summary(string_test$str_clean)
+####################################### CHECK WHAT TO DO WITH UNCLEAN INPUTS #######################################
+
 
 # check by block_type which solution is the correct one (1 = SwissMedicInfo, 2 & 3 = PEDeDose)
 ex_results <- ex_results %>%
@@ -274,7 +279,8 @@ ex_results$is_error <- if_else(condition =
 
 data_main <- ex_results
 
-###### FOR PILOT ###################### test <- data_main %>% select(drug, response, true_result, is_error, block_type, difficulty) %>% filter(is_error == 1)
+####################################### FOR PILOT #######################################
+# test <- data_main %>% select(drug, response, true_result, is_error, block_type, difficulty) %>% filter(is_error == 1)
 
 # save file
 save(data_main, file = "data/data_main.rda")
