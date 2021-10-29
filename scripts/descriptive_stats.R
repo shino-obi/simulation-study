@@ -3,16 +3,6 @@ library(tidyverse)
 load("data/data_covar.rda")
 load("data/data_main.rda")
 
-# ONLY TEMPORARY DELETE AGAIN
-#write.table(x = data_main ,file = "data/data_main_test.csv", sep = ";")
-#data_main <- read.csv2("data/test.csv", sep = ";")
-#data_main$is_error <- NA
-data_main$is_error <- if_else(condition = data_main$response == data_main$true_result,
-                               true = paste0(0),
-                               false = paste0(1))
-data_main$p_id <- as.character(data_main$ï..p_id)
-data_main$ï..p_id <- NULL
-########### <------ DELETE UNTIL HERE
 
 # Participant characteristics
 table_covar <- data_covar %>% select(p_id,
@@ -78,29 +68,6 @@ condition.total <- cbind(condition.total,
 condition.total$percent <- round(x = condition.total$n / condition.total$total_possible * 100, 
                                  digits = 1)
 
-### 3) Errors made over all conditions stratified by exercise
-#### create new ex_id column to be sure all questions are represented
-exercise.total <- data.frame(ex_id = seq(from = 1, to = 18, by = 1))
-
-exercise.total <- left_join(exercise.total, 
-                            data_main %>%
-                              group_by(ex_id) %>%
-                              filter(is_error == 1) %>%
-                              count() %>% 
-                              ungroup(),
-                            by = "ex_id"
-                            )
-
-exercise.total <- cbind(exercise.total,
-                         data_main %>% 
-                           count(ex_id, name = "total_possible") %>%
-                           ungroup() %>%
-                           select(total_possible)
-                        )
-
-#### add percentage
-exercise.total$percent <-  round(x = exercise.total$n / exercise.total$total_possible * 100, 
-                                 digits = 1)
 
 
 ### 4) Errors made over all conditions stratified by exercise difficulty
@@ -138,7 +105,7 @@ diff.total <- cbind(diff.total,
                       count(., name = "total_possible") %>%
                       ungroup() %>%
                       select(total_possible)
-)
+                    )
 
 
 ### 6) Errors made stratified by exercise and by condition

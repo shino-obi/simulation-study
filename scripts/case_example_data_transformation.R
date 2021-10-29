@@ -114,8 +114,8 @@ case_examples_raw <- main_responses %>%
                              Local.Date, 
                              Reaction.Time,
                              Response,
-                             randomise_blocks,
-                             randomise_trials)
+                             randomise_blocks
+                             )
 
 # create id for case examples using Spreadsheet.Row id
 case_examples <- case_examples_raw %>%
@@ -135,10 +135,10 @@ case_examples$Spreadsheet.Row <- NULL
 case_examples$randomise_blocks <- NULL
 case_examples$Local.Date <- NULL
 
+
 colnames(case_examples) <- c("p_id",
                              "time",
                              "response",
-                             "difficulty",
                              "ex_order",
                              "ex_id"
                              )
@@ -275,12 +275,20 @@ ex_results$is_error <- if_else(condition =
                                 false = paste0(1)
                        )
 
+# create id combining exercise with block type
+ex_results$id_exercise_block <- NA
+
+for (i in 1:nrow(ex_results)) {
+  ex_results$id_exercise_block[i] <- paste(ex_results$ex_id[i], ex_results$block_type[i], sep = "_")
+}
+
+
 # finalize transformation
 
 data_main <- ex_results
 
 ####################################### FOR PILOT #######################################
-# test <- data_main %>% select(drug, response, true_result, is_error, block_type, difficulty) %>% filter(is_error == 1)
+# test <- data_main %>% select(drug, response, true_result, is_error, block_type) %>% filter(is_error == 1)
 
 # save file
 save(data_main, file = "data/data_main.rda")
