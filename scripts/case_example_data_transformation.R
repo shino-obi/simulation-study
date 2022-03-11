@@ -20,7 +20,7 @@ for (i in temp)
 } 
 
 ####################################### PILOT #######################################
-# raw_main_data <- read.csv2("data/data_exp_56915-v45_task-ouv3.csv", sep = ",",stringsAsFactors = F)
+# raw_main_data <- read.csv2("data/data_exp_56915-v45_task-ouv3.csv", sep = ",", stringsAsFactors = F)
 
 
 # parse date
@@ -252,8 +252,12 @@ string_test$str_clean <- if_else(condition =
                             )
 
 # summarize clean inputs
-summary(string_test$str_clean)
+summary(string_test$str_clean) # If there is a FAlSE, there is a problem. If all TRUE, everything FINE
 ####################################### CHECK WHAT TO DO WITH UNCLEAN INPUTS #######################################
+
+# standardize participant input (remove space and change commas to points)
+ex_results$response <- str_replace_all(string = ex_results$response, pattern = ",",replacement = ".")
+ex_results$response <- str_replace_all(string = ex_results$response, pattern = " ",replacement = "")
 
 
 # check by block_type which solution is the correct one (1 = SwissMedicInfo, 2 & 3 = PEDeDose)
@@ -270,7 +274,7 @@ ex_results <- ex_results %>%
 ####################################### CHECK COLUMN TYPE FIRST #######################################
 ex_results$is_error <- NA
 ex_results$is_error <- if_else(condition = 
-                                 ex_results$response == ex_results$true_result,
+                                ex_results$response == ex_results$true_result,
                                 true = paste0(0),
                                 false = paste0(1)
                        )
@@ -288,7 +292,10 @@ for (i in 1:nrow(ex_results)) {
 data_main <- ex_results
 
 ####################################### FOR PILOT #######################################
-# test <- data_main %>% select(drug, response, true_result, is_error, block_type) %>% filter(is_error == 1)
+test <- data_main %>% select(p_id, block_type, ex_id, response, true_result, is_error) %>% filter(is_error == 1)
+test <- test %>% filter(p_id != 5412867 & p_id != 5412857)
+
+#### REMOVE 2 PHARMACY ASSISTANTS -> CHECK ID AGIAN: p_id c(5412867, 5412857)
 
 # save file
 save(data_main, file = "data/data_main.rda")

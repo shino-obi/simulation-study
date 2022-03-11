@@ -57,7 +57,6 @@ participant_covar <- participant_columns_wide %>% select(`Participant.Private.ID
                                                          `hospital-1-quantised`,
                                                          `profession-1-quantised`,
                                                          `experience-1-quantised`,
-                                                         `age-1`,
                                                          `pededose-1-quantised`,
                                                          `calc-1-quantised`
                                                          )
@@ -66,7 +65,6 @@ colnames(participant_covar) <- c("p_id",
                                  "clinic",
                                  "prof",
                                  "exp",
-                                 "age",
                                  "pededose",
                                  "calc")
 # ID as char
@@ -89,8 +87,6 @@ participant_covar$exp <- factor(x = participant_covar$exp,
                                 labels = c("<5y","5-10y",">10y"),
                                 ordered = TRUE)
 
-# age (in years) -> CHECK IF NOT BETTER AS FACTOR
-participant_covar$age <- as.numeric(participant_covar$age)
 
 # pededose (1 = nein, 2 = teilweise, 3 = ja)
 participant_covar$pededose <- factor(x = participant_covar$pededose,
