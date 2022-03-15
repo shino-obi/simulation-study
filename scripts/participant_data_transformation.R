@@ -21,6 +21,8 @@ for (i in temp) {
 # parse date
 raw_participant_info$Local.Date <- lubridate::dmy_hms(raw_participant_info$Local.Date, tz = "CET")
 
+# use only date
+raw_participant_info$Local.Date <- lubridate::date(raw_participant_info$Local.Date)
 
 # Description of gorilla data set columns (https://support.gorilla.sc/support/reference/faq/metrics#datacolumns)
 
@@ -32,6 +34,7 @@ raw_participant_info$Local.Date <- lubridate::dmy_hms(raw_participant_info$Local
 
 # select columns
 participant_columns <- raw_participant_info %>% select(`Participant.Private.ID`,
+                                                       `Local.Date`,
                                                        `Question.Key`,
                                                        `Response`)
 
@@ -43,11 +46,14 @@ for (i in 1:nrow(participant_columns)) {
 }
 
 # CREATE PARTICIPANT INFO DF
-# convert df to wide format
-participant_columns_wide <- pivot_wider(data = participant_columns, id_cols = Participant.Private.ID, names_from = Question.Key,values_from = Response)
+# remove `BEGIN QUESTIONNAIRE` and `END QUESTIONNAIRE` values
+participant_columns <- participant_columns %>% filter(`Question.Key` != "BEGIN QUESTIONNAIRE" & 
+                                       `Question.Key` != "END QUESTIONNAIRE") 
+                                           
 
-participant_columns_wide$`BEGIN QUESTIONNAIRE` <- NULL
-participant_columns_wide$`END QUESTIONNAIRE` <- NULL
+# convert df to wide format
+participant_columns_wide <- pivot_wider(data = participant_columns, id_cols = c(`Participant.Private.ID`, `Local.Date`), names_from = `Question.Key`, values_from = `Response`)
+
 
 
 
@@ -73,13 +79,13 @@ participant_covar$p_id <- as.character(participant_covar$p_id)
 #### CHECK CHANGES!!!!!!!!!!!!!!
 # clinic (1 = KISPI, 2 = OKS, 3 = UKBB)
 participant_covar$clinic <- factor(x = participant_covar$clinic,
-                                   levels = c(1,2,3),
-                                   labels = c("KISPI", "OKS", "UKBB"))
+                                   levels = c(1,2,3,4),
+                                   labels = c("Kinderspital", "Spital", "Arztpraxis", "Offizin-Apotheke"))
 
-# profession (1 = Ärztin/Arzt, 2 = Apo, 3 = Pflege, 4 = Pharma. Assi)
+# profession (1 = Kinderärztin/Kinderarzt, 2 = Ärztin/Arzt, 3 = Apo)
 participant_covar$prof <- factor(x = participant_covar$prof,
-                                 levels = c(1,2,3,4),
-                                 labels = c("Physician", "Pharmacist", "Nurse", "PharmTech"))
+                                 levels = c(1,2,3),
+                                 labels = c("Pediatrician","Physician", "Pharmacist"))
 
 # experience (1 = <5J, 2 = 5-10J, 3 = >10J)
 participant_covar$exp <- factor(x = participant_covar$exp,
