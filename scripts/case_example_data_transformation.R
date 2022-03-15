@@ -271,14 +271,7 @@ ex_results <- ex_results %>%
                          )
                 )
 
-# create column indicating calculation error = 1
-####################################### CHECK COLUMN TYPE FIRST #######################################
-ex_results$is_error <- NA
-ex_results$is_error <- if_else(condition = 
-                                ex_results$response == ex_results$true_result,
-                                true = paste0(0),
-                                false = paste0(1)
-                       )
+
 
 # create id combining exercise with block type
 ex_results$id_exercise_block <- NA
@@ -286,7 +279,6 @@ ex_results$id_exercise_block <- NA
 for (i in 1:nrow(ex_results)) {
   ex_results$id_exercise_block[i] <- paste(ex_results$ex_id[i], ex_results$block_type[i], sep = "_")
 }
-
 
 
 # give nice name
