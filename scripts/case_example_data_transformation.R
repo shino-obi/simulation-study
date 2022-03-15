@@ -288,12 +288,13 @@ for (i in 1:nrow(ex_results)) {
 }
 
 
-# finalize transformation
 
+# give nice name
 data_main <- ex_results
 
-####################################### FOR PILOT #######################################
-test <- data_main %>% select(p_id, block_type, ex_id, response, true_result, is_error) %>% filter(is_error == 1)
+# create unique id for each row by combining p_id and ex_id
+data_main$key <- paste0(data_main$p_id, sep = "_", data_main$ex_id)
+
 
 # save file
 save(data_main, file = "data/data_main.rda")
