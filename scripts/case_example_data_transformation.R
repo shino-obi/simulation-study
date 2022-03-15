@@ -294,9 +294,6 @@ data_main <- ex_results
 
 ####################################### FOR PILOT #######################################
 test <- data_main %>% select(p_id, block_type, ex_id, response, true_result, is_error) %>% filter(is_error == 1)
-test <- test %>% filter(p_id != 5412867 & p_id != 5412857)
-
-#### REMOVE 2 PHARMACY ASSISTANTS -> CHECK ID AGAIN: p_id c(5412867, 5412857)
 
 # save file
 save(data_main, file = "data/data_main.rda")
