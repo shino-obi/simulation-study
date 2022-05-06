@@ -77,6 +77,20 @@ block_map <- block_map %>%
 
 colnames(block_map) <- c("p_id", "block_order", "block_type")
 
+# one participant confused blocks -> p_id 5412868 -> need to switch control and base block
+block_map_switch <- block_map %>%
+                        filter(p_id == 5412868) %>% mutate(block_type = case_when(
+                        block_type == 1 ~ 2,
+                        block_type == 2 ~ 1,
+                        block_type == 3 ~ 3))
+                        
+  
+block_map_main <- block_map %>%
+                        filter(p_id != 5412868)
+
+block_map <- rbind(block_map_switch,block_map_main)
+
+
 
 # CREATE DF WITH EXERCISE (EX) RESPONSES
 
