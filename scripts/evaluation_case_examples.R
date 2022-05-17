@@ -4,39 +4,47 @@ library(tidyverse)
 load(file = "data/data_main.rda")
 
 
-# split main dataset into df with dose ranges and with single dosages
-data_range <-
-  data_main %>% filter(str_detect(response, pattern = "-") == TRUE)
+####################################### AUTOMATED ERROR DETECTION #######################################
 
-data_single <-
-  data_main %>% filter(str_detect(response, pattern = "-") == FALSE)
+data_eval <- data_main %>% select(p_id,
+                                  datetime,
+                                  key,
+                                  drug,
+                                  block_type,
+                                  response_lower,
+                                  response_upper,
+                                  true_lower,
+                                  true_upper,
+                                  is_range,
+                                  tw_narrow
+)
+
+data_eval$response_lower <- as.numeric(data_eval$response_lower)
+data_eval$response_upper <- as.numeric(data_eval$response_upper)
+data_eval$true_lower <- as.numeric(data_eval$true_lower)
+data_eval$true_upper <- as.numeric(data_eval$true_upper)
+
+# add margin
+data_eval$margin_lower <- if_else(condition = data_eval$tw_narrow == FALSE,
+                                                true = 0.1*data_eval$true_lower,
+                                                false = 0.05*data_eval$true_lower 
+)
+ 
+data_eval$margin_upper <- if_else(condition = data_eval$tw_narrow == FALSE,
+                                                true = 0.1*data_eval$true_upper,
+                                                false = 0.05*data_eval$true_upper 
+)
+
+# general error definition
+data_eval$is_error <- if_else(condition = 
+                                data_eval$response_lower < (data_eval$true_lower - data_eval$margin_lower) |
+                                data_eval$response_upper > (data_eval$true_upper + data_eval$margin_upper),
+                                              true = TRUE,
+                                              false = FALSE
+                                
+                             
+)
 
 
-# data_range: create 2 new columns for lower and upper dose (for response and true result)
-# response
-split_response <-
-  str_split(string = data_range$response,
-            pattern = "-",
-            simplify = TRUE)
+                                              
 
-split_response <- as.data.frame(split_response)
-colnames(split_response) <- c("response_lower", "response_upper")
-
-# true result
-split_true_result <-
-  str_split(string = data_range$true_result,
-            pattern = "-",
-            simplify = TRUE)
-
-split_true_result <- as.data.frame(split_true_result)
-colnames(split_true_result) <- c("true_lower", "ture_upper")
-
-# combine again
-data_range <- cbind(data_range, split_response, split_true_result)
-
-#
-
-
-
-####################################### FOR PILOT #######################################
-test <- data_main %>% select(p_id, block_type, ex_id, response, true_result, is_error) %>% filter(is_error == 1)

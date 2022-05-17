@@ -190,7 +190,7 @@ merged_case_examples <- left_join(case_examples,
 # JOIN WITH CASE EXAMPLE MAP
 # read case example mapping table
 ####################################### UPDATE MAPPING TABLE WITH TRUE RESULTS #######################################
-raw_main_map <- readxl::read_excel(path = "data/map_case_example_solutions.xlsx")
+raw_main_map <- readxl::read_excel(path = "data/mapping_tables/map_case_example_solutions.xlsx")
 
 # join by ex_id
 ex_results <- left_join(merged_case_examples,
@@ -301,6 +301,20 @@ data_main <- ex_results
 # create unique id for each row by combining p_id and ex_id
 data_main$key <- paste0(data_main$p_id, sep = "_", data_main$ex_id)
 
+
+# split range responses in lower and upper boundary -> single dosages will be duplicated
+data_main$response_lower <- str_extract(data_main$response, "^[^-]*")
+data_main$response_upper <- str_extract(data_main$response, "[^-]*$")
+data_main$true_lower <- str_extract(data_main$true_result, "^[^-]*")
+data_main$true_upper <- str_extract(data_main$true_result, "[^-]*$")
+
+# define whether case example is a range
+data_main$is_range <- str_detect(data_main$true_result, "-")
+
+data_main <- data_main %>% mutate(tw_narrow = if_else(condition = 
+                                    drug %in% c("Rivotril", "Metoject", "Cellcept"),
+                                    true = TRUE, false = FALSE)
+)
 
 # save file
 save(data_main, file = "data/data_main.rda")
