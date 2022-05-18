@@ -308,9 +308,7 @@ data_main$response_upper <- str_extract(data_main$response, "[^-]*$")
 data_main$true_lower <- str_extract(data_main$true_result, "^[^-]*")
 data_main$true_upper <- str_extract(data_main$true_result, "[^-]*$")
 
-# define whether case example is a range
-data_main$is_range <- str_detect(data_main$true_result, "-")
-
+# define narrow or wide therapeutic range
 data_main <- data_main %>% mutate(tw_narrow = if_else(condition = 
                                     drug %in% c("Rivotril", "Metoject", "Cellcept"),
                                     true = TRUE, false = FALSE)

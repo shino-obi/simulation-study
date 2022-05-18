@@ -15,7 +15,6 @@ data_eval <- data_main %>% select(p_id,
                                   response_upper,
                                   true_lower,
                                   true_upper,
-                                  is_range,
                                   tw_narrow
 )
 
@@ -45,6 +44,8 @@ data_eval$is_error <- if_else(condition =
                              
 )
 
+#### ----> check NA's
 
+test <- data_eval %>% group_by(block_type) %>% tally(is_error)
                                               
 
