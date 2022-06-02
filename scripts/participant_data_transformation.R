@@ -77,7 +77,7 @@ colnames(participant_covar) <- c("p_id",
 participant_covar$p_id <- as.character(participant_covar$p_id)
 
 #### CHECK CHANGES!!!!!!!!!!!!!!
-# clinic (1 = KISPI, 2 = OKS, 3 = UKBB)
+# clinic (1 = Kindespital, 2 = Spital, 3 = Arztpraxis, 4 = Offizin)
 participant_covar$clinic <- factor(x = participant_covar$clinic,
                                    levels = c(1,2,3,4),
                                    labels = c("Kinderspital", "Spital", "Arztpraxis", "Offizin-Apotheke"))
@@ -100,17 +100,16 @@ participant_covar$pededose <- factor(x = participant_covar$pededose,
                                      labels = c("no", "partly", "yes"),
                                      ordered = TRUE)
 
-# calc (1 = no, 2 = yes) => change to: 0 = no, 1 = yes
-participant_covar$calc <- if_else(condition = participant_covar$calc == "1",true = 0,false = 1)
-
+# calc (1 = no, 2 = mostly no, 3 = mostly yes, 4 = yes)
 participant_covar$calc <- factor(x = participant_covar$calc,
-                                 levels = c(0,1),
-                                 labels = c("no", "yes"))
+                                 levels = c(1,2,3,4),
+                                 labels = c("no calc","mostly no calc","mostly with calc", "with calc"))
 
 
 # finalize transformation ONLY IF NECESSARY
-data_covar <- participant_covar
+participant_info <- participant_covar
+
 
 # save file
-save(data_covar, file = "data/data_covar.rda")
+save(participant_info, file = "data/participant_info.rda")
 

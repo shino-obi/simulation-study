@@ -18,8 +18,7 @@ is_error:	calculation error (1 = yes, does response NOT match true_result)
 
 # Descriptive Statistics script
 
-table_1_factor:		Frequency of categorical variable subtypes (long)
-table_1_age:		Mean, median and IQR of participant age
+
 
 
 ## Error frequency by error type

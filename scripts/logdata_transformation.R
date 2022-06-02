@@ -1,13 +1,15 @@
 library(tidyverse)
 library(jsonlite)
 library(lubridate)
-
+library(data.table)
 
 ####################################### PILOT #######################################
 raw_log <- read.csv2("data_test/activitylog_example.csv", sep = ";", stringsAsFactors = F)
 
 
 # select only pededosetest gmail logs
+
+
 
 
 # select only calcdose logs
@@ -20,28 +22,34 @@ raw_calc_log$id_code <- seq_along(along.with = raw_calc_log$id)
 
 
 
-
 # parse json into a single list
 parsed_raw <- purrr::map(raw_calc_log$message, jsonlite::fromJSON)
 
-parsed_data <-  list()
+unlisted_jsonlist <- lapply(parsed_raw, unlist)
 
-before <- "b"
-after <- "a"
+# convert list elements to df's
+json_df_list <- lapply(unlisted_jsonlist, as.data.frame)
 
-for (i in seq_along(along.with = parsed_raw)) {
 
-        parsed_lists <- parsed_raw[[i]]
-  
-     while (before != after) {
-              after <- "a"
-              before <- length(parsed_lists)
-              parsed_lists <- purrr::flatten(parsed_lists)
-              after <- length(parsed_lists)
-     }
-        parsed_data[[i]] <- parsed_lists
-        before <- "b"
+
+# rename columns
+for (i in seq_along(json_df_list)) {
+  json_df_list[[i]]$names <-  rownames(json_df_list[[i]])
+  json_df_list[[i]]$values <- json_df_list[[i]]$`X[[i]]`
+  json_df_list[[i]]$`X[[i]]` <- NULL
+  rownames(json_df_list[[i]]) <- NULL
 }
+
+# convert to wide format
+json_df <- lapply(json_df_list, pivot_wider, names_from = names, values_from = values)
+
+# bind list to one df
+json_df <- data.table::rbindlist(l = json_df, use.names = T, fill = T, idcol = "id")
+
+test <-  json_df
+colnames(test) <-  str_replace(string = colnames(test), pattern = "[:digit:]{2,}$", replacement = "")
+colnames(test) <-  str_replace(string = colnames(test), pattern = "[3-9]$", replacement = "")
+
 
 
 # create colnames from JSON string
@@ -54,7 +62,6 @@ col_names <- unique(vector_col_names[vector_col_names != ""])
 # create df with colnames from before
 log_data_frame <- data.frame(matrix(ncol = length(col_names), nrow = length(parsed_data)))
 colnames(log_data_frame) <- col_names
-
 
 
 for (i in seq(1:length(parsed_data))) {

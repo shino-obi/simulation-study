@@ -47,5 +47,5 @@ data_eval$is_error <- if_else(condition =
 #### ----> check NA's
 
 test <- data_eval %>% group_by(block_type) %>% tally(is_error)
-                                              
+data_error <- data_eval %>% filter(is_error == TRUE)                                              
 
