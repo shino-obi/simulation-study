@@ -6,17 +6,8 @@ load(file = "data/data_main.rda")
 
 ####################################### AUTOMATED ERROR DETECTION #######################################
 
-data_eval <- data_main %>% select(p_id,
-                                  datetime,
-                                  key,
-                                  drug,
-                                  block_type,
-                                  response_lower,
-                                  response_upper,
-                                  true_lower,
-                                  true_upper,
-                                  tw_narrow
-)
+data_eval <- data_main
+data_eval$p_id <- as.character(data_eval$p_id)
 
 data_eval$response_lower <- as.numeric(data_eval$response_lower)
 data_eval$response_upper <- as.numeric(data_eval$response_upper)
@@ -38,14 +29,8 @@ data_eval$margin_upper <- if_else(condition = data_eval$tw_narrow == FALSE,
 data_eval$is_error <- if_else(condition = 
                                 data_eval$response_lower < (data_eval$true_lower - data_eval$margin_lower) |
                                 data_eval$response_upper > (data_eval$true_upper + data_eval$margin_upper),
-                                              true = TRUE,
-                                              false = FALSE
-                                
-                             
+                                              true = 1,
+                                              false = 0
 )
 
-#### ----> check NA's
-
-test <- data_eval %>% group_by(block_type) %>% tally(is_error)
-data_error <- data_eval %>% filter(is_error == TRUE)                                              
-
+save(data_eval, file = "data/data_eval.rda")

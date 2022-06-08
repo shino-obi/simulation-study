@@ -76,7 +76,14 @@ colnames(participant_covar) <- c("p_id",
 # ID as char
 participant_covar$p_id <- as.character(participant_covar$p_id)
 
-#### CHECK CHANGES!!!!!!!!!!!!!!
+
+### one participant erroneously chose "hospital" instead of "children's hospital"
+
+participant_covar[(participant_covar$p_id == "5412848"), "clinic"] <- "1"
+
+
+
+
 # clinic (1 = Kindespital, 2 = Spital, 3 = Arztpraxis, 4 = Offizin)
 participant_covar$clinic <- factor(x = participant_covar$clinic,
                                    levels = c(1,2,3,4),
@@ -104,6 +111,11 @@ participant_covar$pededose <- factor(x = participant_covar$pededose,
 participant_covar$calc <- factor(x = participant_covar$calc,
                                  levels = c(1,2,3,4),
                                  labels = c("no calc","mostly no calc","mostly with calc", "with calc"))
+
+
+
+
+
 
 
 # finalize transformation ONLY IF NECESSARY
