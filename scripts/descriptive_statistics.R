@@ -30,7 +30,32 @@ colnames(table_1) <- c("levels","count","percent", "variable")
 table_1$percent <- table_1$percent * 100
 
 
-# SUMMARY STATS ARE SPLIT INTO TWO PARTS: "by block" and "by case example"
+### Histogram response time - exploratory
+histo_data <- data_combined %>% select(p_id, time) %>% na.omit()
+
+histo_time <- ggplot(data = histo_data, aes(x = time)) +
+                geom_histogram(bins = 60, fill = "darkorange", color = "black") +
+                
+                xlab(label = "response time [s]") +
+                ylab(label = "count") +
+                ggtitle("Histogram - Overall distribution of response time (exploratory)")
+ 
+#### save plot      
+ggsave("plots/histogram_time_exp.jpg", plot = histo_time, dpi = 300)
+
+
+### Histogram response time - confirmatory
+histo_data <- data_combined %>% filter(block_type != 2) %>% select(p_id, time) %>% na.omit()
+
+histo_time <- ggplot(data = histo_data, aes(x = time)) +
+        geom_histogram(bins = 60, fill = "darkorange", color = "black") +
+        
+        xlab(label = "response time [s]") +
+        ylab(label = "count") +
+        ggtitle("Histogram - Overall distribution of response time (confirmatory)")
+
+#### save plot      
+ggsave("plots/histogram_time_conf.jpg", plot = histo_time, dpi = 300)
 
 
 ## BY BLOCK ############################################################################
@@ -45,7 +70,7 @@ time_participant_data <- data_combined %>%
 # mean time by block
 time_block_data <- data_combined %>%
                         group_by(block_type) %>%
-                        summarise(mean_time = mean(time), "0.75" = quantile(time, 3/4), "0.25" = quantile(time, 1/4)) %>% unique()
+                        summarise(mean_time = mean(time, na.rm = T), "0.75" = quantile(time, 3/4, na.rm = T), "0.25" = quantile(time, 1/4, na.rm = T)) %>% unique()
 
 
 #### violin plot for time distribution
@@ -65,7 +90,7 @@ violin_time_block <- ggplot(data = time_participant_data,
                      lwd = 0.7
         ) +
         xlab("conditions") +
-        ylab("time [s]") +
+        ylab("response time [s]") +
         ggtitle(label = "Summary of mean time per participant for each condition")
 
 #### save plot
@@ -74,6 +99,48 @@ ggsave("plots/violin_time_block.jpg", plot = violin_time_block, dpi = 300)
 
 
 ### ERROR
+
+#### Horizontal bar plot - errors by case_example
+
+# remove NA's and summarise errors + percentage
+barplot_data <- data_combined %>%
+                        drop_na(is_error) %>%
+                        group_by(ex_id, block_type) %>%
+                        summarise(n = n(), is_error = sum(is_error)) %>%
+                        ungroup()
+
+barplot_data$percent_error <- round(barplot_data$is_error / barplot_data$n * 100,
+                                    digits = 0)
+
+for (x in c("control", "basic", "full")) {
+        
+        barplot_data_final <- barplot_data %>%
+                                filter(block_type == x) %>%
+                                arrange(percent_error) %>%
+                                mutate(order = seq_along(along.with = percent_error))
+        
+        error_barplot <- barplot_data_final %>%
+                                mutate(ex_id = fct_reorder(ex_id, order)) %>%
+        ggplot(mapping = aes(x = ex_id, y = percent_error, fill = x,  width = .5)
+        ) +
+                geom_bar(stat = "identity", show.legend = F) +
+                scale_fill_manual(values = c("control" = "red",
+                                             "basic" = "blue",
+                                             "full" = "green")) +
+                coord_flip() +
+                #geom_text(aes(label = paste(percent_error, "%")),nudge_y = 4, nudge_x = 0.05,  colour = "black") + #add percentage label
+                scale_y_continuous(limits = c(0,100)) +
+                xlab("case example ID") +
+                ylab("error percentage [%]") +
+        ggtitle(label = paste(x))
+        
+        plot(error_barplot)
+        
+        # save plot
+        ggsave(filename = paste("plots/barplot_",x , ".jpg", sep = ""), plot = error_barplot, dpi = 300)                
+        
+}
+
 
 # error count by participant and block 
 error_participant_data <- data_combined %>%
@@ -112,7 +179,7 @@ time_data_for_plot <- left_join(time_data_for_plot, id_ce_block_counts, by = "id
 time_data_for_plot$labels <- paste(time_data_for_plot$block_type, " (n = ", time_data_for_plot$n , ")", sep = "") 
 
 
-# make plot for each exercise
+# make plot for each exercise (uncomment for-loop)
 
 #for (j in seq(1:18)) {
         plot_data <- time_data_for_plot %>% filter(ex_id == j)
@@ -152,7 +219,7 @@ time_data_for_plot$labels <- paste(time_data_for_plot$block_type, " (n = ", time
                              lwd = 0.7
                 ) +
                 xlab("condition") +
-                ylab("time [s]") +
+                ylab("response time [s]") +
                 ggtitle(label = paste("Case example ", j, " - Summary of participant time for each condition", sep = ""))
         
         plot(violin_time_ce)

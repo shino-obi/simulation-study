@@ -19,8 +19,6 @@ for (i in temp)
   raw_main_data <- rbind(raw_main_data, temp_file)
 } 
 
-####################################### PILOT #######################################
-# raw_main_data <- read.csv2("data/data_exp_56915-v45_task-ouv3.csv", sep = ",", stringsAsFactors = F)
 
 
 # parse date
@@ -188,6 +186,51 @@ merged_case_examples <- left_join(case_examples,
                                   by = c("p_id","block_order")
                         )
 
+
+####################################### MANUALLY ADD MISSING ROWS FOR OMITTED CASE EXAMPLES #######################################
+
+# identify missing case example (n = 18/participant)
+count_rows <- merged_case_examples %>% group_by(p_id) %>% count()
+count_rows$missing <- 18 - count_rows$n
+
+missing_rows <- count_rows %>% filter(n != 18) %>% select(p_id, missing)
+sum_missing_rows <- sum(missing_rows$missing)
+
+
+
+`5412871_1` <- c("p_id" = as.integer(5412871),
+                 "datetime" = NA,
+                 "time" = NA,
+                 "response" = NA,
+                 "ex_order" = 17,
+                 "ex_id" = as.integer(17),
+                 "block_order" = 3,
+                 "block_type" = 3
+)
+
+`5412871_2` <- c("p_id" = as.integer(5412871),
+                 "datetime" = NA,
+                 "time" = NA,
+                 "response" = NA,
+                 "ex_order" = 18,
+                 "ex_id" = as.integer(18),
+                 "block_order" = 3,
+                 "block_type" = 3
+)
+
+`5412876_1` <- c("p_id" = as.integer(5412876),
+                 "datetime" = NA,
+                 "time" = NA,
+                 "response" = NA,
+                 "ex_order" = 18,
+                 "ex_id" = as.integer(18),
+                 "block_order" = 3,
+                 "block_type" = 1 
+)
+
+# add row for missing case examples
+merged_case_examples <- rbind(merged_case_examples,`5412871_1`,`5412871_2`,`5412876_1`)
+
 # JOIN WITH CASE EXAMPLE MAP
 # read case example mapping table
 ####################################### UPDATE MAPPING TABLE WITH TRUE RESULTS #######################################
@@ -263,17 +306,40 @@ string_test$str_clean <- if_else(condition =
                                       string_test$str_points == TRUE &
                                       string_test$str_letter == TRUE &
                                       string_test$str_punct == TRUE,
-                                   true = TRUE,
-                                   false = FALSE
-                            )
+                                 true = TRUE,
+                                 false = FALSE
+                          )
 
-# summarize clean inputs
+# check inputs
 summary(string_test$str_clean) # If there is a FAlSE, there is a problem. If all TRUE, everything FINE
-####################################### CHECK WHAT TO DO WITH UNCLEAN INPUTS #######################################
+
+
+####################################### CLEAN PROBLEMATIC RESPONSES #######################################
 
 # standardize participant input (remove space and change commas to points)
 ex_results$response <- str_replace_all(string = ex_results$response, pattern = ",",replacement = ".")
-ex_results$response <- str_replace_all(string = ex_results$response, pattern = " ",replacement = "")
+ex_results$response <- str_replace_all(string = ex_results$response, pattern = "[:space:]",replacement = "")
+
+# get problematic ids
+problem_ids <- string_test %>% filter(str_clean == FALSE) %>% select(p_id, response)
+
+# manually clean problematic responses (if unclear: NA)
+ex_results[(ex_results$p_id == 5412856 & ex_results$ex_id == 10),]$response <- NA
+ex_results[(ex_results$p_id == 5412871 & ex_results$ex_id == 14),]$response <- "8.4"
+ex_results[(ex_results$p_id == 5412877 & ex_results$ex_id == 12),]$response <- "304-456"
+ex_results[(ex_results$p_id == 5412880 & ex_results$ex_id == 3),]$response <- "2.9-8.7"
+ex_results[(ex_results$p_id == 6202755 & ex_results$ex_id == 8),]$response <- "11.7-23.5"
+
+
+# for case examples with non-response -> set time to NA aswell
+
+for (i in seq_along(ex_results$p_id)) {
+  if (is.na(ex_results$response[i]) == TRUE) {
+    ex_results$time[i] <- NA
+  }  
+}
+
+
 
 
 # check by block_type which solution is the correct one (1 = SwissMedicInfo, 2 & 3 = PEDeDose)
@@ -314,6 +380,7 @@ data_main <- data_main %>% mutate(tw_narrow = if_else(condition =
                                     drug %in% c("Rivotril", "Metoject", "Cellcept"),
                                     true = TRUE, false = FALSE)
 )
+
 
 # save file
 save(data_main, file = "data/data_main.rda")
