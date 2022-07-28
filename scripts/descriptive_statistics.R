@@ -3,15 +3,6 @@ library(tidyverse)
 load("data/data_combined.rda")
 load("data/participant_info.rda")
 
-data_combined$block_type <- factor(data_combined$block_type,
-                                           levels = c(1,2,3),
-                                           labels = c("control", "basic", "full"),
-                                           ordered = T)
-
-data_combined$ex_id <- factor(data_combined$ex_id, levels = c(seq(1,18)))
-
-# exclude participant no. 5412871 ???
-#data_combined <- data_combined[!data_combined$p_id == 5412871,]
 
 
 ## TABLE 1 - PARTICIPANT INFO SUMMARY
@@ -28,7 +19,9 @@ for (i in c("clinic", "prof", "exp", "pededose", "calc")) {
 # make df pretty
 colnames(table_1) <- c("levels","count","percent", "variable")
 table_1$percent <- table_1$percent * 100
+table_1$percent <- round(table_1$percent, digits = 2)
 
+write.table(table_1,file = "table_1.csv" , col.names = T, dec = ".", sep = ";", row.names = F)
 
 ### Histogram response time - exploratory
 histo_data <- data_combined %>% select(p_id, time) %>% na.omit()
@@ -181,52 +174,52 @@ time_data_for_plot$labels <- paste(time_data_for_plot$block_type, " (n = ", time
 
 # make plot for each exercise (uncomment for-loop)
 
-#for (j in seq(1:18)) {
-        plot_data <- time_data_for_plot %>% filter(ex_id == j)
-        
-        label_names <- unique(plot_data$labels)
-        
-        name_1 <- str_which(string = label_names,
-                            pattern = "control")
-        name_2 <- str_which(string = label_names,
-                            pattern = "basic")
-        name_3 <- str_which(string = label_names,
-                            pattern = "full")
-        dynamic_labels <- c(label_names[name_1],label_names[name_2],label_names[name_3])
-        
-        plot_data$labels <- factor(x = plot_data$labels,
-                                   levels = c(dynamic_labels[1],
-                                              dynamic_labels[2],
-                                              dynamic_labels[3]),
-                                   labels = c(dynamic_labels[1],
-                                              dynamic_labels[2],
-                                              dynamic_labels[3]),
-                                   ordered = T) 
-        
-        violin_time_ce <- ggplot(data = plot_data,
-                                 aes(x = labels,
-                                     y = time,
-                                     fill = block_type)
-        ) +
-                scale_x_discrete(waiver()) +
-                scale_fill_manual(values = c("control" = "red",
-                                             "basic" = "blue",
-                                             "full" = "green")) +
-                
-                geom_violin() +
-                geom_boxplot(width = 0.15,
-                             color = "black",
-                             lwd = 0.7
-                ) +
-                xlab("condition") +
-                ylab("response time [s]") +
-                ggtitle(label = paste("Case example ", j, " - Summary of participant time for each condition", sep = ""))
-        
-        plot(violin_time_ce)
- 
-        #### save plot
-        ggsave(filename = paste("plots/ce_plots/violin_time_ce_",j, ".jpg", sep = ""), plot = violin_time_ce, dpi = 300)
-#}
+ for (j in seq(1:18)) {
+         plot_data <- time_data_for_plot %>% filter(ex_id == j)
+
+         label_names <- unique(plot_data$labels)
+
+         name_1 <- str_which(string = label_names,
+                             pattern = "control")
+         name_2 <- str_which(string = label_names,
+                             pattern = "basic")
+         name_3 <- str_which(string = label_names,
+                             pattern = "full")
+         dynamic_labels <- c(label_names[name_1],label_names[name_2],label_names[name_3])
+
+         plot_data$labels <- factor(x = plot_data$labels,
+                                    levels = c(dynamic_labels[1],
+                                               dynamic_labels[2],
+                                               dynamic_labels[3]),
+                                    labels = c(dynamic_labels[1],
+                                               dynamic_labels[2],
+                                               dynamic_labels[3]),
+                                    ordered = T)
+
+         violin_time_ce <- ggplot(data = plot_data,
+                                  aes(x = labels,
+                                      y = time,
+                                      fill = block_type)
+         ) +
+                 scale_x_discrete(waiver()) +
+                 scale_fill_manual(values = c("control" = "red",
+                                              "basic" = "blue",
+                                              "full" = "green")) +
+
+                 geom_violin() +
+                 geom_boxplot(width = 0.15,
+                              color = "black",
+                              lwd = 0.7
+                 ) +
+                 xlab("condition") +
+                 ylab("response time [s]") +
+                 ggtitle(label = paste("Case example ", j, " - Summary of participant time for each condition", sep = ""))
+
+         plot(violin_time_ce)
+
+         #### save plot
+         ggsave(filename = paste("plots/ce_plots/violin_time_ce_",j, ".jpg", sep = ""), plot = violin_time_ce, dpi = 300)
+ }
 
 ### ERROR
 

@@ -19,13 +19,3 @@ is_error:	calculation error (1 = yes, does response NOT match true_result)
 # Descriptive Statistics script
 
 
-
-
-## Error frequency by error type
-
-overall.total:		1) Errors made over all exercises and all conditions
-condition.total:	2) Errors made over all exercises stratified by condition
-exercise.total:		3) Errors made over all conditions stratified by exercise
-diff.total:		4) Errors made over all conditions stratified by exercise difficulty
-cond.diff:		5) Errors stratified by conditions and by exercise difficulty
-ex.cond: 		6) Errors made stratified by exercise and by condition

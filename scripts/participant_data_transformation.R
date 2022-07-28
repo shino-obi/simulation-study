@@ -113,15 +113,6 @@ participant_covar$calc <- factor(x = participant_covar$calc,
                                  labels = c("no calc","mostly no calc","mostly with calc", "with calc"))
 
 
-
-
-
-
-
-# finalize transformation ONLY IF NECESSARY
-participant_info <- participant_covar
-
-
 # save file
-save(participant_info, file = "data/participant_info.rda")
+save(participant_covar, file = "data/participant_covar.rda")
 

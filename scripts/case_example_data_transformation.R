@@ -126,9 +126,45 @@ case_examples_raw <- main_responses %>%
                              Spreadsheet.Row,
                              Local.Date, 
                              Reaction.Time,
-                             Response,
-                             randomise_blocks
+                             Response
                              )
+
+####################################### MANUALLY ADD MISSING ROWS FOR OMITTED CASE EXAMPLES #######################################
+
+# identify missing case example (n = 18/participant)
+count_rows <- case_examples_raw %>% group_by(Participant.Private.ID) %>% count()
+count_rows$missing <- 18 - count_rows$n
+
+missing_rows <- count_rows %>% filter(n != 18) %>% select(Participant.Private.ID)
+
+
+`5412871_1` <- c("Participant.Private.ID" = "5412871",
+                 "Spreadsheet.Row" = "16",
+                 "Local.Date" = "2022-03-03 14:28:04",
+                 "Reaction.Time" = NA,
+                 "Response" = NA
+)
+
+
+`5412871_2` <- c("Participant.Private.ID" = "5412871",
+                 "Spreadsheet.Row" = "32",
+                 "Local.Date" = "2022-03-03 14:29:21",
+                 "Reaction.Time" = NA,
+                 "Response" = NA
+)
+
+`5412876_1` <- c("Participant.Private.ID" = "5412876",
+                 "Spreadsheet.Row" = "28",
+                 "Local.Date" = "2022-04-01 13:46:46",
+                 "Reaction.Time" = NA,
+                 "Response" = NA
+)
+
+# add row for missing case examples
+case_examples_raw$Local.Date <- as.character(case_examples_raw$Local.Date)
+case_examples_raw <- rbind(case_examples_raw, `5412871_1`, `5412871_2`, `5412876_1`)
+case_examples_raw$Local.Date <- ymd_hms(case_examples_raw$Local.Date, tz = "CET")
+case_examples_raw$Spreadsheet.Row <- as.numeric(case_examples_raw$Spreadsheet.Row)
 
 # create id for case examples using Spreadsheet.Row id
 case_examples <- case_examples_raw %>%
@@ -145,7 +181,6 @@ case_examples <- case_examples %>%
                   ungroup()
 
 case_examples$Spreadsheet.Row <- NULL
-case_examples$randomise_blocks <- NULL
 
 
 
@@ -177,7 +212,7 @@ case_examples <- case_examples %>%
                   )
 
 case_examples$block_order <- as.character(case_examples$block_order)
-
+block_map$p_id <- as.character(block_map$p_id)
 
 
 # MERGE BLOCK MAP WITH CASE EXAMPLES
@@ -187,54 +222,14 @@ merged_case_examples <- left_join(case_examples,
                         )
 
 
-####################################### MANUALLY ADD MISSING ROWS FOR OMITTED CASE EXAMPLES #######################################
 
-# identify missing case example (n = 18/participant)
-count_rows <- merged_case_examples %>% group_by(p_id) %>% count()
-count_rows$missing <- 18 - count_rows$n
-
-missing_rows <- count_rows %>% filter(n != 18) %>% select(p_id, missing)
-sum_missing_rows <- sum(missing_rows$missing)
-
-
-
-`5412871_1` <- c("p_id" = as.integer(5412871),
-                 "datetime" = NA,
-                 "time" = NA,
-                 "response" = NA,
-                 "ex_order" = 17,
-                 "ex_id" = as.integer(17),
-                 "block_order" = 3,
-                 "block_type" = 3
-)
-
-`5412871_2` <- c("p_id" = as.integer(5412871),
-                 "datetime" = NA,
-                 "time" = NA,
-                 "response" = NA,
-                 "ex_order" = 18,
-                 "ex_id" = as.integer(18),
-                 "block_order" = 3,
-                 "block_type" = 3
-)
-
-`5412876_1` <- c("p_id" = as.integer(5412876),
-                 "datetime" = NA,
-                 "time" = NA,
-                 "response" = NA,
-                 "ex_order" = 18,
-                 "ex_id" = as.integer(18),
-                 "block_order" = 3,
-                 "block_type" = 1 
-)
-
-# add row for missing case examples
-merged_case_examples <- rbind(merged_case_examples,`5412871_1`,`5412871_2`,`5412876_1`)
 
 # JOIN WITH CASE EXAMPLE MAP
 # read case example mapping table
 ####################################### UPDATE MAPPING TABLE WITH TRUE RESULTS #######################################
 raw_main_map <- readxl::read_excel(path = "data/mapping_tables/map_case_example_solutions.xlsx")
+
+case_examples$p_id <- as.integer(case_examples$p_id)
 
 # join by ex_id
 ex_results <- left_join(merged_case_examples,
@@ -325,13 +320,13 @@ problem_ids <- string_test %>% filter(str_clean == FALSE) %>% select(p_id, respo
 
 # manually clean problematic responses (if unclear: NA)
 ex_results[(ex_results$p_id == 5412856 & ex_results$ex_id == 10),]$response <- NA
-ex_results[(ex_results$p_id == 5412871 & ex_results$ex_id == 14),]$response <- "8.4"
+ex_results[(ex_results$p_id == 5412871 & ex_results$ex_id == 15),]$response <- "8.4"
 ex_results[(ex_results$p_id == 5412877 & ex_results$ex_id == 12),]$response <- "304-456"
 ex_results[(ex_results$p_id == 5412880 & ex_results$ex_id == 3),]$response <- "2.9-8.7"
 ex_results[(ex_results$p_id == 6202755 & ex_results$ex_id == 8),]$response <- "11.7-23.5"
 
 
-# for case examples with non-response -> set time to NA aswell
+# for case examples with non-response -> set time to NA as well
 
 for (i in seq_along(ex_results$p_id)) {
   if (is.na(ex_results$response[i]) == TRUE) {
