@@ -58,7 +58,7 @@ ggsave("plots/histogram_time_conf.jpg", plot = histo_time, dpi = 300)
 # mean time by participant and block 
 time_participant_data <- data_combined %>%
                                 group_by(p_id, block_type) %>%
-                                summarise(mean_time = mean(time), .groups = "keep")
+                                summarise(mean_time = mean(time, na.rm = T), .groups = "keep")
 
 # mean time by block
 time_block_data <- data_combined %>%
@@ -155,12 +155,12 @@ summary_participant <- left_join(error_participant_data, time_participant_data, 
 # mean time by case_example and block 
 time_ce_block_data <- data_combined %>%
         group_by(id_exercise_block, drug, block_type) %>%
-        summarise(mean_time = mean(time), .groups = "keep")
+        summarise(mean_time = mean(time, na.rm = T), .groups = "keep")
 
 # mean time by case_example
 time_ce_data <- data_combined %>%
         group_by(ex_id, drug) %>%
-        summarise(mean_time = mean(time), .groups = "keep")
+        summarise(mean_time = mean(time, na.rm = T), .groups = "keep")
 
 
 #### violin plot for time distribution ------------------------------> REDO PLOT
@@ -259,3 +259,7 @@ save(list = c("summary_block",
 
 write.csv2(x = table_1, file = "table_1.csv")
 
+write.csv2(x = summary_block, file = "summary_block.csv")
+write.csv2(x = summary_participant, file = "summary_participant.csv")
+write.csv2(x = summary_ce_block, file = "summary_ce_block.csv")
+write.csv2(x = summary_ce, file = "summary_ce.csv")
